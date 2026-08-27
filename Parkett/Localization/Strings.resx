@@ -9,6 +9,7 @@
   <data name="App_Title" xml:space="preserve"><value>Parkett</value></data>
   <data name="Window_About" xml:space="preserve"><value>About Parkett</value></data>
   <data name="Window_Settings" xml:space="preserve"><value>Parkett — Settings</value></data>
+  <data name="Window_Update" xml:space="preserve"><value>Update available</value></data>
 
   <!-- ============ Kopfbereich ============ -->
   <data name="Main_TradingDay" xml:space="preserve"><value>Trading day</value></data>
@@ -84,6 +85,11 @@
   <!-- ============ Gemeinsam ============ -->
   <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Common_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Common_Later" xml:space="preserve"><value>Later</value></data>
+
+  <!-- ============ System-Tray ============ -->
+  <data name="Tray_Show" xml:space="preserve"><value>Show</value></data>
+  <data name="Tray_Quit" xml:space="preserve"><value>Quit</value></data>
 
   <!-- ============ Über-Fenster ============ -->
   <data name="About_Tagline" xml:space="preserve"><value>Stock market simulator with real prices and virtual money</value></data>
@@ -94,6 +100,15 @@
   <data name="About_UpToDate" xml:space="preserve"><value>You have the latest version.</value></data>
   <data name="About_CheckFailed" xml:space="preserve"><value>Check failed.</value></data>
   <data name="About_Version" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="About_License" xml:space="preserve"><value>MIT license · © 2026 Lars Krügel (Kroste)</value></data>
+
+  <!-- ============ Self-Update ============ -->
+  <data name="Update_Install" xml:space="preserve"><value>⬇  Install update</value></data>
+  <data name="Update_Headline" xml:space="preserve"><value>Version {0} is available</value></data>
+  <data name="Update_Body" xml:space="preserve"><value>You are running version {0}. Parkett downloads the update, installs it and restarts itself.</value></data>
+  <data name="Update_Downloading" xml:space="preserve"><value>Downloading … {0} %</value></data>
+  <data name="Update_Restarting" xml:space="preserve"><value>Update downloaded — Parkett restarts.</value></data>
+  <data name="Update_Failed" xml:space="preserve"><value>Update failed — see log for details.</value></data>
 
   <!-- ============ Datenquelle und Kurse ============ -->
   <data name="Data_Realtime" xml:space="preserve"><value>{0} · real time</value></data>

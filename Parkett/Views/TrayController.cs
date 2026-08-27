@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using NLog;
+using Parkett.Localization;
 
 namespace Parkett.Views;
 
@@ -28,6 +29,8 @@ public sealed class TrayController
     private readonly Application _app;
     private readonly Window _window;
     private TrayIcon? _tray;
+    private NativeMenuItem? _showItem;
+    private NativeMenuItem? _quitItem;
     private bool _restoreInProgress;
 
     public TrayController(Application app, Window window)
@@ -57,6 +60,10 @@ public sealed class TrayController
             TrayIcon.SetIcons(_app, new TrayIcons { _tray });
             _window.PropertyChanged += OnWindowPropertyChanged;
 
+            // Ein NativeMenuItem-Header ist ein fertiger String und folgt dem
+            // Sprachwechsel nicht von selbst — anders als {loc:Tr} im XAML.
+            LocalizationService.Instance.PropertyChanged += (_, _) => ApplyMenuTexts();
+
             _logger.Info("System-Tray installiert (Minimize → Tray).");
         }
         catch (Exception ex)
@@ -70,17 +77,32 @@ public sealed class TrayController
     {
         var menu = new NativeMenu();
 
-        var showItem = new NativeMenuItem("Anzeigen");
-        showItem.Click += (_, _) => Restore();
-        menu.Add(showItem);
+        _showItem = new NativeMenuItem();
+        _showItem.Click += (_, _) => Restore();
+        menu.Add(_showItem);
 
         menu.Add(new NativeMenuItemSeparator());
 
-        var quitItem = new NativeMenuItem("Beenden");
-        quitItem.Click += (_, _) => Quit();
-        menu.Add(quitItem);
+        _quitItem = new NativeMenuItem();
+        _quitItem.Click += (_, _) => Quit();
+        menu.Add(_quitItem);
+
+        ApplyMenuTexts();
 
         return menu;
+    }
+
+    private void ApplyMenuTexts()
+    {
+        if (_showItem is not null)
+        {
+            _showItem.Header = L.T("Tray_Show");
+        }
+
+        if (_quitItem is not null)
+        {
+            _quitItem.Header = L.T("Tray_Quit");
+        }
     }
 
     private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
