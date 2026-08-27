@@ -26,6 +26,10 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="NLog" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+    <!-- Kommt transitiv über Avalonia.FreeDesktop, steht aber explizit hier,
+         damit die Version in Directory.Packages.props überhaupt greift: der
+         Tray unter Linux hängt daran. -->
+    <PackageReference Include="Tmds.DBus.Protocol" />
   </ItemGroup>
 
   <!-- DevTools nur im Debug-Build -->

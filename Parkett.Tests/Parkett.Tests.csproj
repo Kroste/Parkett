@@ -4,9 +4,15 @@
     <!-- xunit.v3 4.x + .NET-10-SDK: der alte VSTest-Pfad ist entfernt,
          "dotnet test" läuft nur noch über Microsoft.Testing.Platform. -->
     <OutputType>Exe</OutputType>
-    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Notbremse gegen einen Test, der in einer allokierenden Endlosschleife
+         hängt: der Lauf endet als OutOfMemoryException statt den Rechner (oder
+         den CI-Runner) leerzuziehen. Portabel, greift auch unter Windows. -->
+    <RuntimeHostConfigurationOption Include="System.GC.HeapHardLimit" Value="0x100000000" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="xunit.v3" />

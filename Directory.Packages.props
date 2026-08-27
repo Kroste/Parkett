@@ -11,8 +11,13 @@
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
     <!-- Nur Debug-Builds referenzieren dieses Paket (DevTools) -->
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
-    <!-- Passend zur Avalonia-Version gepinnt (Linux DBus/Tray) -->
-    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
+    <!-- Linux DBus/Tray. Die Version folgt dem transitiven Zug von
+         Avalonia.FreeDesktop 12.1.1 (= 0.94.1), NICHT der Höchstversion:
+         0.95.0 existiert, gehört aber nicht zu dieser Avalonia-Linie.
+         Der Verweis steht bewusst explizit in Parkett.csproj — ohne ihn wäre
+         der Eintrag hier wirkungslos, weil CPM transitive Pakete nur mit
+         CentralPackageTransitivePinningEnabled pinnt. -->
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.1" />
 
     <!-- MVVM & DI -->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />

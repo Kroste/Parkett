@@ -1,0 +1,13 @@
+{
+  // Pflicht bei .slnx: ohne diesen Eintrag generiert sich das C# Dev Kit eine
+  // eigene .sln im Workspace-Cache und hält daran fest. Der Test-Explorer
+  // arbeitet dann auf einer veralteten Projektliste und bricht mit
+  // "Test Run Aborted" bei 0 Tests ab, während "dotnet test" auf der
+  // Kommandozeile alles findet.
+  "dotnet.defaultSolution": "Parkett.slnx",
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "[csharp]": {
+    "editor.formatOnSave": true
+  }
+}

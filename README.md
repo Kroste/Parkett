@@ -110,6 +110,11 @@ Tokens und Lizenzschlüssel werden automatisch maskiert.
 
 ## Entwicklung
 
+Das App-Icon wird aus einem Skript erzeugt, damit es reproduzierbar bleibt —
+`scripts/build_icon.py` (Pillow) und `scripts/build_icon.ps1` (System.Drawing,
+ohne Python-Abhängigkeit) liefern dasselbe Ergebnis. Bei Design-Änderungen
+beide anpassen.
+
 ```bash
 dotnet build   # bauen
 dotnet test    # Tests (134 Stück)
