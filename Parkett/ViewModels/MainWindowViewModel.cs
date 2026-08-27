@@ -7,6 +7,7 @@ using NLog;
 using Parkett.Charting;
 using Parkett.Domain;
 using Parkett.Licensing;
+using Parkett.Localization;
 using Parkett.Persistence;
 using Parkett.Services;
 using Parkett.Simulation;
@@ -74,7 +75,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     private IReadOnlyList<ChartMarker> _chartMarkers = [];
 
     [ObservableProperty]
-    private string _statusText = "Instrument wählen und Sitzung starten.";
+    private string _statusText = L.T("Status_ChooseInstrument");
 
     [ObservableProperty]
     private string _quoteText = "—";
@@ -129,9 +130,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         DataSourceText = dataProvider.License.StatusText;
         EditionText = features.Current switch
         {
-            Edition.Pro => "Pro",
-            Edition.Full => "Vollversion",
-            _ => "Kostenlose Fassung",
+            Edition.Pro => L.T("Edition_Pro"),
+            Edition.Full => L.T("Edition_Full"),
+            _ => L.T("Edition_Free"),
         };
 
         UpdatePortfolioTexts();
@@ -182,10 +183,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     public string EditionText { get; }
 
-    public string DisclaimerText =>
-        "Virtuelles Geld. Keine Anlageberatung, keine Kauf- oder Verkaufsempfehlung.";
+    public string DisclaimerText => L.T("Main_Disclaimer");
 
-    public string PlayButtonText => Speed == SimulationSpeed.Paused ? "▶  Start" : "⏸  Pause";
+    public string PlayButtonText =>
+        Speed == SimulationSpeed.Paused ? L.T("Transport_Play") : L.T("Transport_Pause");
 
     private bool CanStart => !IsBusy && SelectedInstrument is not null;
 
@@ -211,7 +212,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
             if (history.Count < 2)
             {
-                StatusText = $"Für {instrument.Symbol} liegt zu wenig Historie vor.";
+                StatusText = L.F("Status_NotEnoughHistory", instrument.Symbol);
                 return;
             }
 
@@ -226,13 +227,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
             IsSessionRunning = true;
 
             RefreshFromClock();
-            StatusText = $"Sitzung läuft: {instrument.Symbol}, {history.Count} Handelstage.";
+            StatusText = L.F("Status_SessionRunning", instrument.Symbol, history.Count);
             Log.Info("Sitzung gestartet: {Symbol} mit {Count} Kerzen.", instrument.Symbol, history.Count);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Sitzungsstart für {Symbol} fehlgeschlagen.", instrument.Symbol);
-            StatusText = "Sitzung konnte nicht gestartet werden — Details im Log.";
+            StatusText = L.T("Status_StartFailed");
         }
         finally
         {
@@ -249,7 +250,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         if (snapshot is null)
         {
             HasSavedSession = false;
-            StatusText = "Kein fortsetzbarer Stand vorhanden.";
+            StatusText = L.T("Status_NoSavedSession");
             return;
         }
 
@@ -265,7 +266,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
             {
                 // Historie hat sich seit dem Speichern geändert — lieber ehrlich abbrechen
                 // als an der falschen Kerze weiterzuspielen.
-                StatusText = $"Der gespeicherte Stand passt nicht mehr zur Historie von {snapshot.Symbol}.";
+                StatusText = L.F("Status_ResumeStale", snapshot.Symbol);
                 _sessionStore.Clear();
                 HasSavedSession = false;
                 return;
@@ -293,13 +294,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
             SelectedInstrument = Instruments.FirstOrDefault(i =>
                 string.Equals(i.Symbol, snapshot.Symbol, StringComparison.OrdinalIgnoreCase));
 
-            StatusText = $"Sitzung fortgesetzt: {snapshot.Symbol} ab dem {_clock.Current.OpenTime:dd.MM.yyyy}.";
+            StatusText = L.F("Status_SessionResumed", snapshot.Symbol, _clock.Current.OpenTime.ToString("d", CultureInfo.CurrentCulture));
             Log.Info("Sitzung fortgesetzt: {Symbol} bei Index {Index}.", snapshot.Symbol, snapshot.CandleIndex);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Sitzung konnte nicht fortgesetzt werden.");
-            StatusText = "Sitzung konnte nicht fortgesetzt werden — Details im Log.";
+            StatusText = L.T("Status_ResumeFailed");
         }
         finally
         {
@@ -395,11 +396,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         HasSavedSession = false;
 
         var report = _session.Report();
-        StatusText = string.Create(
-            CultureInfo.CurrentCulture,
-            $"Sitzung beendet: {report.TotalReturnPercent:+0.00;-0.00;0.00} % Ergebnis, " +
-            $"{report.TradeCount} Rundläufe, Trefferquote {report.WinRatePercent:N0} %, " +
-            $"Gebührenlast {report.FeeDragPercent:N1} % des Startkapitals.");
+        StatusText = L.F(
+            "Status_SessionFinished",
+            report.TotalReturnPercent.ToString("+0.00;-0.00;0.00", CultureInfo.CurrentCulture) + " %",
+            report.TradeCount,
+            report.WinRatePercent.ToString("N0", CultureInfo.CurrentCulture) + " %",
+            report.FeeDragPercent.ToString("N1", CultureInfo.CurrentCulture) + " %");
 
         Log.Info("Sitzung beendet: {Report}", report);
     }
@@ -432,18 +434,18 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
                 if (Instruments.Count == 0)
                 {
-                    StatusText = "Keine Kursdaten gefunden. Siehe Data/README.md.";
+                    StatusText = L.T("Status_NoData");
                 }
                 else if (instruments.Count > limit)
                 {
-                    StatusText = $"{limit} von {instruments.Count} Instrumenten — {_features.UpgradeHint(Feature.UnlimitedInstruments)}";
+                    StatusText = L.F("Status_InstrumentLimit", limit, instruments.Count, _features.UpgradeHint(Feature.UnlimitedInstruments));
                 }
             });
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Instrumentenliste konnte nicht geladen werden.");
-            StatusText = "Instrumentenliste konnte nicht geladen werden — Details im Log.";
+            StatusText = L.T("Status_InstrumentsFailed");
         }
     }
 
@@ -499,14 +501,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         var quantity = symbol is null ? 0m : portfolio.QuantityOf(symbol);
 
         PositionText = quantity == 0m
-            ? "keine Position"
+            ? L.T("Portfolio_NoPosition")
             : string.Create(CultureInfo.CurrentCulture, $"{quantity:N0} Stück @ {portfolio.GetPosition(symbol!)!.AveragePrice:N2}");
     }
 
     private static string FormatFill(Fill fill) =>
         string.Create(
             CultureInfo.CurrentCulture,
-            $"{fill.ExecutedAt:dd.MM.yy}  {(fill.Side == OrderSide.Buy ? "Kauf" : "Verkauf")}  {fill.Quantity:N0} {fill.Symbol} @ {fill.Price:N2}  (Gebühr {fill.Fee:N2})");
+            $"{fill.ExecutedAt.ToString("d", CultureInfo.CurrentCulture)}  {(fill.Side == OrderSide.Buy ? L.T("Order_SideBuy") : L.T("Order_SideSell"))}  {fill.Quantity:N0} {fill.Symbol} @ {fill.Price:N2}  ({fill.Fee:N2})");
 
     public void Dispose() => _timer.Stop();
 }

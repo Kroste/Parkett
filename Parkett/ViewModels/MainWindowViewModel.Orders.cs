@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NLog;
 using Parkett.Domain;
+using Parkett.Localization;
 
 namespace Parkett.ViewModels;
 
@@ -30,7 +31,7 @@ public sealed partial class MainWindowViewModel
         if (_session.Cancel(id))
         {
             RefreshOpenOrders();
-            StatusText = "Order storniert.";
+            StatusText = L.T("Status_OrderCancelled");
         }
     }
 
@@ -61,15 +62,15 @@ public sealed partial class MainWindowViewModel
         {
             Blotter.Insert(0, FormatFill(fill));
             RefreshMarkers();
-            StatusText = side == OrderSide.Buy ? "Kauf ausgeführt." : "Verkauf ausgeführt.";
+            StatusText = side == OrderSide.Buy ? L.T("Status_Bought") : L.T("Status_Sold");
         }
         else if (result.RemainsOpen)
         {
-            StatusText = "Order liegt im Buch und wartet auf den Kurs.";
+            StatusText = L.T("Status_OrderResting");
         }
         else
         {
-            StatusText = result.Order.RejectReason ?? "Order nicht ausgeführt.";
+            StatusText = result.Order.RejectReason ?? L.T("Status_OrderRejected");
             OrderLog.Warn("Order abgelehnt: {Reason}", result.Order.RejectReason);
         }
 

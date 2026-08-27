@@ -10,6 +10,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using NLog;
+using Parkett.Localization;
 using Parkett.Services;
 
 namespace Parkett.Views;
@@ -31,7 +32,7 @@ public partial class AboutWindow : ChromeWindow
     public AboutWindow(UpdateService updateService) : this()
     {
         _updateService = updateService;
-        VersionText.Text = $"Version {updateService.CurrentVersion}";
+        VersionText.Text = L.F("About_Version", updateService.CurrentVersion);
         UpdateButton.Click += OnCheckUpdate;
         GithubButton.Click += (_, _) => Launch(GithubUrl);
         BmcButton.Click += (_, _) => Launch(BmcUrl);
@@ -41,20 +42,20 @@ public partial class AboutWindow : ChromeWindow
     {
         if (_updateService is null) return;
         UpdateButton.IsEnabled = false;
-        UpdateResult.Text = "Prüfe …";
+        UpdateResult.Text = L.T("About_Checking");
         try
         {
             var result = await _updateService.CheckForUpdateAsync();
             UpdateResult.Text = result.UpdateAvailable
-                ? $"Version {result.LatestVersion} verfügbar!"
+                ? L.F("About_UpdateAvailable", result.LatestVersion)
                 : result.LatestVersion is null
-                    ? "Kein Zugriff auf GitHub."
-                    : "Du hast die aktuelle Version.";
+                    ? L.T("About_NoAccess")
+                    : L.T("About_UpToDate");
         }
         catch (Exception ex)
         {
             Log.Warn(ex, "Update-Prüfung im Über-Fenster fehlgeschlagen");
-            UpdateResult.Text = "Prüfung fehlgeschlagen.";
+            UpdateResult.Text = L.T("About_CheckFailed");
         }
         finally
         {

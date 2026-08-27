@@ -3,6 +3,7 @@
         xmlns:views="using:Parkett.Views"
         xmlns:controls="using:Parkett.Controls"
         xmlns:vm="using:Parkett.ViewModels"
+        xmlns:loc="using:Parkett.Localization"
         x:Class="Parkett.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="1240" Height="800"
@@ -39,9 +40,19 @@
                         <TextBlock Text="Parkett" Classes="h1" />
                         <TextBlock Text="{Binding QuoteText}" Classes="secondary" />
                     </StackPanel>
-                    <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right">
-                        <TextBlock Text="Handelstag" Classes="muted" FontSize="12" HorizontalAlignment="Right" />
-                        <TextBlock Text="{Binding DateText}" Classes="h2" HorizontalAlignment="Right" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{loc:Tr Main_TradingDay}" Classes="muted" FontSize="12" HorizontalAlignment="Right" />
+                            <TextBlock Text="{Binding DateText}" Classes="h2" HorizontalAlignment="Right" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button Classes="ghost" Content="⚙" FontSize="15" Padding="10,6"
+                                    ToolTip.Tip="{loc:Tr Common_Settings}"
+                                    Click="OnOpenSettings" />
+                            <Button Classes="ghost" Content="ⓘ" FontSize="15" Padding="10,6"
+                                    ToolTip.Tip="{loc:Tr Window_About}"
+                                    Click="OnOpenAbout" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
 
@@ -54,10 +65,10 @@
                                   MinWidth="150"
                                   VerticalAlignment="Center" />
                         <Button Grid.Column="1" Classes="ghost" Margin="8,0,0,0"
-                                Content="Neue Sitzung"
+                                Content="{loc:Tr Transport_NewSession}"
                                 Command="{Binding StartSessionCommand}" />
                         <Button Grid.Column="2" Classes="ghost" Margin="8,0,0,0"
-                                Content="Fortsetzen"
+                                Content="{loc:Tr Transport_Resume}"
                                 IsVisible="{Binding HasSavedSession}"
                                 Command="{Binding ResumeSessionCommand}" />
 
@@ -66,12 +77,12 @@
                                 MinWidth="96"
                                 Command="{Binding TogglePlayCommand}" />
                         <Button Grid.Column="5" Classes="ghost" Margin="8,0,0,0"
-                                Content="⏭  Schritt"
+                                Content="{loc:Tr Transport_Step}"
                                 Command="{Binding StepCommand}" />
 
                         <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="10"
                                     HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock Text="Tempo" Classes="muted" VerticalAlignment="Center" />
+                            <TextBlock Text="{loc:Tr Transport_Speed}" Classes="muted" VerticalAlignment="Center" />
                             <ComboBox ItemsSource="{Binding Speeds}"
                                       SelectedItem="{Binding SelectedSpeed}"
                                       MinWidth="96"
@@ -101,27 +112,27 @@
 
                     <Border Classes="card">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="DEPOT" Classes="section-label" />
+                            <TextBlock Text="{loc:Tr Portfolio_Section}" Classes="section-label" />
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="1">
-                                    <TextBlock Text="Gesamtwert" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{loc:Tr Portfolio_Equity}" Classes="muted" FontSize="11" />
                                     <TextBlock Text="{Binding EquityText}" Classes="h2" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="1" Spacing="1">
-                                    <TextBlock Text="Ergebnis" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{loc:Tr Portfolio_Return}" Classes="muted" FontSize="11" />
                                     <TextBlock Text="{Binding ReturnText}" Classes="h2" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.Column="0" Spacing="1" Margin="0,10,0,0">
-                                    <TextBlock Text="Kasse" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{loc:Tr Portfolio_Cash}" Classes="muted" FontSize="11" />
                                     <TextBlock Text="{Binding CashText}" Classes="secondary" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.Column="1" Spacing="1" Margin="0,10,0,0">
-                                    <TextBlock Text="Gebühren gesamt" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{loc:Tr Portfolio_Fees}" Classes="muted" FontSize="11" />
                                     <TextBlock Text="{Binding FeeText}"
                                                Foreground="{DynamicResource KrosteGoldBrush}" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Spacing="1" Margin="0,10,0,0">
-                                    <TextBlock Text="Position" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{loc:Tr Portfolio_Position}" Classes="muted" FontSize="11" />
                                     <TextBlock Text="{Binding PositionText}" Classes="secondary" />
                                 </StackPanel>
                             </Grid>
@@ -130,30 +141,30 @@
 
                     <Border Classes="card">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="ORDER" Classes="section-label" />
+                            <TextBlock Text="{loc:Tr Order_Section}" Classes="section-label" />
                             <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" >
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Stück" Classes="muted"
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Tr Order_Quantity}" Classes="muted"
                                            VerticalAlignment="Center" Margin="0,0,10,0" />
                                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Quantity}" />
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Limit" Classes="muted"
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Tr Order_Limit}" Classes="muted"
                                            VerticalAlignment="Center" Margin="0,8,10,0" />
                                 <TextBox Grid.Row="1" Grid.Column="1" Margin="0,8,0,0"
                                          Text="{Binding LimitPrice}"
-                                         PlaceholderText="leer = billigst/bestens" />
+                                         PlaceholderText="{loc:Tr Order_LimitHint}" />
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Stop" Classes="muted"
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Tr Order_Stop}" Classes="muted"
                                            VerticalAlignment="Center" Margin="0,8,10,0" />
                                 <TextBox Grid.Row="2" Grid.Column="1" Margin="0,8,0,0"
                                          Text="{Binding StopPrice}"
-                                         PlaceholderText="optional" />
+                                         PlaceholderText="{loc:Tr Order_StopHint}" />
                             </Grid>
                             <Grid ColumnDefinitions="*,10,*">
-                                <Button Grid.Column="0" Classes="accent" Content="Kaufen"
+                                <Button Grid.Column="0" Classes="accent" Content="{loc:Tr Order_Buy}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center"
                                         Command="{Binding BuyCommand}" />
-                                <Button Grid.Column="2" Classes="danger" Content="Verkaufen"
+                                <Button Grid.Column="2" Classes="danger" Content="{loc:Tr Order_Sell}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center"
                                         Command="{Binding SellCommand}" />
@@ -163,7 +174,7 @@
 
                     <Border Classes="card" IsVisible="{Binding HasOpenOrders}">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="OFFENE ORDERS" Classes="section-label" />
+                            <TextBlock Text="{loc:Tr Order_OpenSection}" Classes="section-label" />
                             <ItemsControl ItemsSource="{Binding OpenOrders}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:OpenOrderRow">
@@ -191,7 +202,7 @@
 
                     <Border Classes="card-flat" MinHeight="180">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="AUSFÜHRUNGEN" Classes="section-label"
+                            <TextBlock DockPanel.Dock="Top" Text="{loc:Tr Order_Blotter}" Classes="section-label"
                                        Margin="16,14,16,8" />
                             <ListBox ItemsSource="{Binding Blotter}"
                                      Background="Transparent"

@@ -1,25 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Deutsche Übersetzungen. Kroste-Standard: EN + DE sind Pflicht für jede
-  App. Weitere Sprachen (fr, ru, es, …) optional als eigene .{iso}.resx.
--->
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
 
+  <!-- ============ App / Fenstertitel ============ -->
   <data name="App_Title" xml:space="preserve"><value>Parkett</value></data>
-  <data name="Window_Settings" xml:space="preserve"><value>Parkett — Einstellungen</value></data>
   <data name="Window_About" xml:space="preserve"><value>Über Parkett</value></data>
+  <data name="Window_Settings" xml:space="preserve"><value>Parkett — Einstellungen</value></data>
 
-  <data name="Settings_Section_UiLanguage" xml:space="preserve"><value>APP-SPRACHE</value></data>
-  <data name="Settings_UiLanguage" xml:space="preserve"><value>Sprache der App</value></data>
-  <data name="Settings_UiLanguage_Hint" xml:space="preserve"><value>Änderungen greifen sofort — kein Neustart nötig.</value></data>
+  <!-- ============ Kopfbereich ============ -->
+  <data name="Main_TradingDay" xml:space="preserve"><value>Handelstag</value></data>
+  <data name="Main_Disclaimer" xml:space="preserve"><value>Virtuelles Geld. Keine Anlageberatung, keine Kauf- oder Verkaufsempfehlung.</value></data>
 
-  <data name="Common_Ok" xml:space="preserve"><value>OK</value></data>
-  <data name="Common_Cancel" xml:space="preserve"><value>Abbrechen</value></data>
-  <data name="Common_Save" xml:space="preserve"><value>Speichern</value></data>
+  <!-- ============ Transportleiste ============ -->
+  <data name="Transport_NewSession" xml:space="preserve"><value>Neue Sitzung</value></data>
+  <data name="Transport_Resume" xml:space="preserve"><value>Fortsetzen</value></data>
+  <data name="Transport_Play" xml:space="preserve"><value>▶  Start</value></data>
+  <data name="Transport_Pause" xml:space="preserve"><value>⏸  Pause</value></data>
+  <data name="Transport_Step" xml:space="preserve"><value>⏭  Schritt</value></data>
+  <data name="Transport_Speed" xml:space="preserve"><value>Tempo</value></data>
 
-  <data name="Status_Ready" xml:space="preserve"><value>Bereit.</value></data>
+  <!-- ============ Depot ============ -->
+  <data name="Portfolio_Section" xml:space="preserve"><value>DEPOT</value></data>
+  <data name="Portfolio_Equity" xml:space="preserve"><value>Gesamtwert</value></data>
+  <data name="Portfolio_Return" xml:space="preserve"><value>Ergebnis</value></data>
+  <data name="Portfolio_Cash" xml:space="preserve"><value>Kasse</value></data>
+  <data name="Portfolio_Fees" xml:space="preserve"><value>Gebühren gesamt</value></data>
+  <data name="Portfolio_Position" xml:space="preserve"><value>Position</value></data>
+  <data name="Portfolio_NoPosition" xml:space="preserve"><value>keine Position</value></data>
+
+  <!-- ============ Order ============ -->
+  <data name="Order_Section" xml:space="preserve"><value>ORDER</value></data>
+  <data name="Order_Quantity" xml:space="preserve"><value>Stück</value></data>
+  <data name="Order_Limit" xml:space="preserve"><value>Limit</value></data>
+  <data name="Order_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Order_LimitHint" xml:space="preserve"><value>leer = billigst/bestens</value></data>
+  <data name="Order_StopHint" xml:space="preserve"><value>optional</value></data>
+  <data name="Order_Buy" xml:space="preserve"><value>Kaufen</value></data>
+  <data name="Order_Sell" xml:space="preserve"><value>Verkaufen</value></data>
+  <data name="Order_OpenSection" xml:space="preserve"><value>OFFENE ORDERS</value></data>
+  <data name="Order_Blotter" xml:space="preserve"><value>AUSFÜHRUNGEN</value></data>
+  <data name="Order_SideBuy" xml:space="preserve"><value>Kauf</value></data>
+  <data name="Order_SideSell" xml:space="preserve"><value>Verkauf</value></data>
+
+  <!-- ============ Status ============ -->
+  <data name="Status_ChooseInstrument" xml:space="preserve"><value>Instrument wählen und Sitzung starten.</value></data>
+  <data name="Status_SessionRunning" xml:space="preserve"><value>Sitzung läuft: {0}, {1} Handelstage.</value></data>
+  <data name="Status_SessionResumed" xml:space="preserve"><value>Sitzung fortgesetzt: {0} ab dem {1}.</value></data>
+  <data name="Status_SessionFinished" xml:space="preserve"><value>Sitzung beendet: {0} Ergebnis, {1} Rundläufe, Trefferquote {2}, Gebührenlast {3} des Startkapitals.</value></data>
+  <data name="Status_NotEnoughHistory" xml:space="preserve"><value>Für {0} liegt zu wenig Historie vor.</value></data>
+  <data name="Status_StartFailed" xml:space="preserve"><value>Sitzung konnte nicht gestartet werden — Details im Log.</value></data>
+  <data name="Status_ResumeFailed" xml:space="preserve"><value>Sitzung konnte nicht fortgesetzt werden — Details im Log.</value></data>
+  <data name="Status_ResumeStale" xml:space="preserve"><value>Der gespeicherte Stand passt nicht mehr zur Historie von {0}.</value></data>
+  <data name="Status_NoSavedSession" xml:space="preserve"><value>Kein fortsetzbarer Stand vorhanden.</value></data>
+  <data name="Status_NoData" xml:space="preserve"><value>Keine Kursdaten gefunden. Siehe Data/README.md.</value></data>
+  <data name="Status_InstrumentLimit" xml:space="preserve"><value>{0} von {1} Instrumenten — {2}</value></data>
+  <data name="Status_InstrumentsFailed" xml:space="preserve"><value>Instrumentenliste konnte nicht geladen werden — Details im Log.</value></data>
+  <data name="Status_Bought" xml:space="preserve"><value>Kauf ausgeführt.</value></data>
+  <data name="Status_Sold" xml:space="preserve"><value>Verkauf ausgeführt.</value></data>
+  <data name="Status_OrderResting" xml:space="preserve"><value>Order liegt im Buch und wartet auf den Kurs.</value></data>
+  <data name="Status_OrderRejected" xml:space="preserve"><value>Order nicht ausgeführt.</value></data>
+  <data name="Status_OrderCancelled" xml:space="preserve"><value>Order storniert.</value></data>
+
+  <!-- ============ Editionen ============ -->
+  <data name="Edition_Free" xml:space="preserve"><value>Kostenlose Fassung</value></data>
+  <data name="Edition_Full" xml:space="preserve"><value>Vollversion</value></data>
+  <data name="Edition_Pro" xml:space="preserve"><value>Pro</value></data>
+
+  <!-- ============ Einstellungen ============ -->
+  <data name="Settings_Section_UiLanguage" xml:space="preserve"><value>SPRACHE DER ANWENDUNG</value></data>
+  <data name="Settings_UiLanguage_Hint" xml:space="preserve"><value>Die Änderung wirkt sofort — kein Neustart nötig.</value></data>
+  <data name="Settings_Section_Fees" xml:space="preserve"><value>GEBÜHRENMODELL</value></data>
+  <data name="Settings_Fees_Hint" xml:space="preserve"><value>Gebühren sind der Hauptgrund, warum kleine Konten verlieren. Probier dieselbe Strategie mit verschiedenen Modellen.</value></data>
+  <data name="Settings_Section_License" xml:space="preserve"><value>LIZENZ</value></data>
+  <data name="Settings_License_Hint" xml:space="preserve"><value>Schlüssel aus der Kaufbestätigung hier einfügen.</value></data>
+  <data name="Settings_License_Placeholder" xml:space="preserve"><value>Lizenzschlüssel</value></data>
+  <data name="Settings_License_Apply" xml:space="preserve"><value>Übernehmen</value></data>
+  <data name="Settings_License_Restart" xml:space="preserve"><value>Die neue Ausbaustufe wird nach einem Neustart aktiv.</value></data>
+  <data name="Settings_License_Invalid" xml:space="preserve"><value>Dieser Schlüssel ist ungültig.</value></data>
+
+  <!-- ============ Gemeinsam ============ -->
+  <data name="Common_Close" xml:space="preserve"><value>Schließen</value></data>
+  <data name="Common_Settings" xml:space="preserve"><value>Einstellungen</value></data>
+
+  <!-- ============ Über-Fenster ============ -->
+  <data name="About_Tagline" xml:space="preserve"><value>Börsensimulator mit echten Kursen und virtuellem Geld</value></data>
+  <data name="About_CheckUpdates" xml:space="preserve"><value>Auf Updates prüfen</value></data>
+  <data name="About_Checking" xml:space="preserve"><value>Prüfe …</value></data>
+  <data name="About_UpdateAvailable" xml:space="preserve"><value>Version {0} verfügbar!</value></data>
+  <data name="About_NoAccess" xml:space="preserve"><value>Kein Zugriff auf GitHub.</value></data>
+  <data name="About_UpToDate" xml:space="preserve"><value>Du hast die aktuelle Version.</value></data>
+  <data name="About_CheckFailed" xml:space="preserve"><value>Prüfung fehlgeschlagen.</value></data>
+  <data name="About_Version" xml:space="preserve"><value>Version {0}</value></data>
 </root>

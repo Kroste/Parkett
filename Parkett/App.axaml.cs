@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using Parkett.Domain;
 using Parkett.Licensing;
+using Parkett.Localization;
 using Parkett.Persistence;
 using Parkett.Services;
 using Parkett.ViewModels;
@@ -28,6 +29,9 @@ public partial class App : Application
 
     private ServiceProvider? _services;
 
+    /// <summary>Container für Fenster, die erst auf Klick entstehen (Einstellungen, Über).</summary>
+    public static IServiceProvider? Services { get; private set; }
+
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
     public override void OnFrameworkInitializationCompleted()
@@ -35,6 +39,15 @@ public partial class App : Application
         GlobalExceptionHandler.Install();
 
         _services = BuildServices();
+        Services = _services;
+
+        // Sprache setzen, BEVOR das erste Fenster gebaut wird — sonst flackert es.
+        var settings = _services.GetRequiredService<SettingsService>().Load();
+
+        if (!string.IsNullOrWhiteSpace(settings.UiCulture))
+        {
+            LocalizationService.Instance.SetCulture(settings.UiCulture);
+        }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -102,9 +115,20 @@ public partial class App : Application
         services.AddSingleton<IMarketDataProvider>(_ =>
             new CsvHistoryProvider(Path.Combine(AppContext.BaseDirectory, "Data")));
 
-        services.AddSingleton<IFeeModel>(_ => TieredFeeModel.Neobroker);
+        services.AddSingleton<IFeeModel>(sp =>
+        {
+            var model = sp.GetRequiredService<SettingsService>().Load().FeeModel;
+
+            return model switch
+            {
+                "Free" => TieredFeeModel.Free,
+                "Hausbank" => TieredFeeModel.Hausbank,
+                _ => TieredFeeModel.Neobroker,
+            };
+        });
 
         services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<SettingsWindowViewModel>();
 
         return services.BuildServiceProvider();
     }

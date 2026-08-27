@@ -1,0 +1,64 @@
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Parkett.Views"
+        xmlns:controls="using:Parkett.Controls"
+        xmlns:loc="using:Parkett.Localization"
+        xmlns:vm="using:Parkett.ViewModels"
+        x:Class="Parkett.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
+        Width="460" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Title="{loc:Tr Window_Settings}"
+        Background="{DynamicResource KrosteBackgroundBrush}">
+    <DockPanel>
+        <controls:TitleBar DockPanel.Dock="Top" Title="{loc:Tr Window_Settings}" />
+
+        <StackPanel Margin="22" Spacing="14">
+
+            <Border Classes="card">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:Tr Settings_Section_UiLanguage}" Classes="section-label" />
+                    <ComboBox ItemsSource="{Binding Cultures}"
+                              SelectedItem="{Binding SelectedCulture}"
+                              HorizontalAlignment="Stretch" />
+                    <TextBlock Text="{loc:Tr Settings_UiLanguage_Hint}" Classes="muted"
+                               FontSize="11" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:Tr Settings_Section_Fees}" Classes="section-label" />
+                    <ComboBox ItemsSource="{Binding FeeOptions}"
+                              SelectedItem="{Binding SelectedFee}"
+                              HorizontalAlignment="Stretch" />
+                    <TextBlock Text="{loc:Tr Settings_Fees_Hint}" Classes="muted"
+                               FontSize="11" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:Tr Settings_Section_License}" Classes="section-label" />
+                    <Grid ColumnDefinitions="*,8,Auto">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding LicenseKey}"
+                                 PlaceholderText="{loc:Tr Settings_License_Placeholder}" />
+                        <Button Grid.Column="2" Classes="accent"
+                                Content="{loc:Tr Settings_License_Apply}"
+                                Command="{Binding ApplyLicenseCommand}" />
+                    </Grid>
+                    <TextBlock Text="{loc:Tr Settings_License_Hint}" Classes="muted"
+                               FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding LicenseFeedback}" Classes="secondary"
+                               FontSize="11" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Button Classes="ghost" Content="{loc:Tr Common_Close}"
+                    HorizontalAlignment="Right"
+                    Click="OnClose" />
+        </StackPanel>
+    </DockPanel>
+</views:ChromeWindow>
