@@ -25,6 +25,17 @@ Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-U
 angeschlossen, JsonStore-Quarantäne eingegrenzt, Emoji-Font-Fallback, Log-Pfade,
 Umlaute, `.editorconfig`, CI-Annotationen, VM-Aufteilung. Details in der Referenz.
 
+**v0.3.0 ist veröffentlicht** — das erste echte Release, mit win-x64-ZIP,
+linux-x64-Tarball und AppImage. Der Release-Workflow ist damit erstmals scharf
+gelaufen und zweimal repariert worden (siehe Stolperfallen).
+
+⚠️ **Der Update-Check funktioniert noch nicht, und das liegt nicht am Code:
+`Kroste/Parkett` ist ein privates Repository.** Die GitHub-API antwortet auf
+anonyme Anfragen an private Repos mit **404** statt 403 — sie verrät die Existenz
+nicht. Für den Direktverkauf muss das Repo (oder wenigstens ein Release-Kanal)
+öffentlich sein, sonst kann keine ausgelieferte Fassung Updates finden und
+niemand die Pakete herunterladen. Das ist eine Produktentscheidung, kein Bug.
+
 Fertig:
 
 - **Domänenkern** (`Domain/`): `Order`, `Fill`, `Position`, `Portfolio`, `MatchingEngine`,
@@ -211,6 +222,21 @@ die Lizenz.
   Fassungen grün — er beweist nichts. `Delete` blockiert das Lesen und erlaubt das
   Umbenennen; erst damit wird die alte Fassung rot. Der Test läuft nur unter Windows
   (`Assert.SkipUnless`), weil Linux keine verbindlichen Dateisperren kennt.
+- **Ein 404 beim Update-Check heißt womöglich „privates Repo", nicht „kein
+  Release".** Die GitHub-API verrät die Existenz privater Repos nicht und
+  antwortet anonym mit 404 statt 403. Beim ersten Release von Parkett wurde
+  deshalb minutenlang im `UpdateService` gesucht, obwohl das Release längst lag.
+  Erste Prüfung: `gh repo view <slug> --json isPrivate`.
+- **Der Release-Workflow verbrannte Artefakt-Quota, die kontoweit gilt.** Der
+  Windows-Build war fertig und scheiterte am `upload-artifact`-Schritt mit
+  „Artifact storage quota has been hit" — belegt von einem *anderen* Repo
+  (Spektiv, über 6 GB). Der Umweg über upload/download ist überflüssig:
+  `action-gh-release` kann in jedem Job direkt ans Release anhängen. Dafür
+  müssen die Jobs nacheinander laufen, sonst rennen sie um die Erstellung.
+- **`-p:Version=…` greift bei MinVer-Projekten nicht** — MinVer setzt die
+  Version selbst und überschreibt den Schalter. Wer für einen Test eine andere
+  Version braucht, nimmt `-p:MinVerVersionOverride=0.2.0`. Fiel auf, als eine
+  „alte" Testfassung sich als 0.3.0 meldete.
 - **Ein Self-Update, das die App nicht selbst beendet, hängt bei 100 %.** Das
   Austausch-Skript wartet auf das Prozessende (`Wait-Process` bzw. `kill -0`).
   `DownloadAndApplyAsync` gibt nur `true` zurück — **jeder** Aufrufer muss danach
