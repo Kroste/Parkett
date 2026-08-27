@@ -143,6 +143,12 @@ die Lizenz.
   rot, ohne dass ein Test fehlgeschlagen wäre. Nicht mit `--report-trx` verwechseln, das
   bräuchte `Microsoft.Testing.Extensions.TrxReport`. Die TRX landet in
   `TestResults/test-results.trx` im Repo-Root, nicht neben der Test-DLL.
+- **Styles und Resource-Keys scheitern STILL.** Ein toter `Classes="accent"` oder ein
+  fehlender `{DynamicResource XyzBrush}` gibt keinen Compile-Fehler — es rendert einfach
+  falsch. `XamlResourceTests` macht daraus einen roten Testlauf: Key-Abgleich,
+  Style-Klassen-Abgleich, keine Farbliterale außerhalb von `App.axaml`, keine doppelten
+  `x:Key`. Alle vier wurden gegen absichtlich verbogenes XAML gegengeprüft — der Build
+  blieb dabei grün, nur die Tests schlugen an. Genau deshalb gibt es sie.
 - **Ein CI-Annotation-Schritt, der nichts findet, ist schlimmer als keiner.** Der Parser
   in `ci.yml` wurde einmal gegen einen absichtlich kaputten Test geprüft (PR #3, wieder
   verworfen) — er liefert Testname, Assertion und die Zeile im eigenen Testcode.
