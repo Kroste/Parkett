@@ -9,7 +9,7 @@
 
     <Application.Resources>
         <!-- Kroste-Palette (voll — Card-basierter Look).
-             Erklaerung der Farb-Rollen: references/design.md → Farbpalette. -->
+             Erklärung der Farb-Rollen: references/design.md → Farbpalette. -->
         <SolidColorBrush x:Key="KrosteBackgroundBrush" Color="#1A1D21" />
         <SolidColorBrush x:Key="KrosteTitleBarBrush" Color="#14161A" />
         <SolidColorBrush x:Key="KrosteSurfaceBrush" Color="#22262B" />
@@ -53,8 +53,8 @@
         <!-- ================================================================ -->
         <!-- Buttons — konsistenter Basis-Look, Varianten via Klasse           -->
         <!-- ================================================================ -->
-        <!-- Default: subtile Karte, duenner Border, Hover hebt sich ab.
-             Sonst wuerde FluentTheme-Standard-Grau alles konkurrieren. -->
+        <!-- Default: subtile Karte, dünner Border, Hover hebt sich ab.
+             Sonst würde FluentTheme-Standard-Grau alles konkurrieren. -->
         <Style Selector="Button">
             <Setter Property="Background" Value="{DynamicResource KrosteSurfaceBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource KrosteTextBrush}" />
@@ -77,7 +77,7 @@
             <Setter Property="Opacity" Value="0.45" />
         </Style>
 
-        <!-- Primaere Aktion: kraeftiges Blau, weisse Schrift, kein Border. -->
+        <!-- Primäre Aktion: kräftiges Blau, weisse Schrift, kein Border. -->
         <Style Selector="Button.accent">
             <Setter Property="Background" Value="{DynamicResource KrosteAccentBrush}" />
             <Setter Property="Foreground" Value="#F5F7FA" />
@@ -101,7 +101,7 @@
             <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
 
-        <!-- Gefaehrliche Aktion (loeschen/verwerfen): roter Hover-State. -->
+        <!-- Gefährliche Aktion (löschen/verwerfen): roter Hover-State. -->
         <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#5A1F19" />
             <Setter Property="BorderBrush" Value="{DynamicResource KrosteDangerBrush}" />
@@ -125,8 +125,8 @@
             <Setter Property="CornerRadius" Value="8" />
         </Style>
 
-        <!-- Section-Label: duenner Alu-Look, klein, sperrig, Grau.
-             Fuer ALL-CAPS-Sektionsmarker wie "ARCHIV" / "WERKZEUGE". -->
+        <!-- Section-Label: dünner Alu-Look, klein, sperrig, Grau.
+             Für ALL-CAPS-Sektionsmarker wie "ARCHIV" / "WERKZEUGE". -->
         <Style Selector="TextBlock.section-label">
             <Setter Property="Foreground" Value="{DynamicResource KrosteMutedTextBrush}" />
             <Setter Property="FontSize" Value="10.5" />
@@ -183,7 +183,7 @@
         </Style>
 
         <!-- ================================================================ -->
-        <!-- ProgressBar — duenn, Gold                                         -->
+        <!-- ProgressBar — dünn, Gold                                         -->
         <!-- ================================================================ -->
         <Style Selector="ProgressBar">
             <Setter Property="Foreground" Value="{DynamicResource KrosteGoldBrush}" />

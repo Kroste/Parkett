@@ -9,7 +9,7 @@ namespace Parkett.Localization;
 /// <see cref="LocalizedString"/>-Wrapper und bindet an dessen
 /// <see cref="LocalizedString.Value"/>-Property. Sobald der
 /// <see cref="LocalizationService"/> die Sprache wechselt, feuert
-/// jeder Wrapper ein regulaeres <c>PropertyChanged</c> — alle Bindings
+/// jeder Wrapper ein reguläres <c>PropertyChanged</c> — alle Bindings
 /// in allen Fenstern refreshen live.
 /// </summary>
 public sealed class TrExtension : MarkupExtension
@@ -22,10 +22,10 @@ public sealed class TrExtension : MarkupExtension
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
         // Wrapper aus dem statischen Cache — nicht pro Binding neu
-        // erzeugen! Avalonia haelt Binding.Source nicht dauerhaft
-        // stark; ein frisch erzeugter Wrapper wuerde nach dem ersten
+        // erzeugen! Avalonia hält Binding.Source nicht dauerhaft
+        // stark; ein frisch erzeugter Wrapper würde nach dem ersten
         // Rendering GC'd, und die Sprachwechsel-Notification liefe ins
-        // Leere. Der Cache haelt jeden Wrapper fuer die App-Lebensdauer.
+        // Leere. Der Cache hält jeden Wrapper für die App-Lebensdauer.
         return new Binding(nameof(LocalizedString.Value))
         {
             Source = LocalizedString.Get(Key),

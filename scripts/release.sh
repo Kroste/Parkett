@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Kroste-Release: prueft den Git-Zustand, erstellt einen annotierten Tag vX.Y.Z
-# und pusht ihn (loest die Release-Action aus).
+# Kroste-Release: prüft den Git-Zustand, erstellt einen annotierten Tag vX.Y.Z
+# und pusht ihn (löst die Release-Action aus).
 # Versionsquelle: <Version> aus Directory.Build.props/csproj falls vorhanden
 # (NetScanner-Stil), sonst MinVer-Stil: letzter Tag + Bump-Abfrage.
 set -euo pipefail
@@ -17,7 +17,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "FEHLER: '$VERSION' ist keine gueltige SemVer-Version (X.Y.Z)." >&2
+  echo "FEHLER: '$VERSION' ist keine gültige SemVer-Version (X.Y.Z)." >&2
   exit 1
 fi
 TAG="v${VERSION}"
@@ -31,7 +31,7 @@ if [ -n "$(git log --branches --not --remotes --oneline 2>/dev/null)" ]; then
   exit 1
 fi
 if git rev-parse "$TAG" >/dev/null 2>&1; then
-  read -r -p "Tag $TAG existiert bereits. Loeschen und neu setzen? [j/N] " answer
+  read -r -p "Tag $TAG existiert bereits. Löschen und neu setzen? [j/N] " answer
   if [ "${answer,,}" != "j" ]; then
     echo "Abgebrochen."
     exit 0

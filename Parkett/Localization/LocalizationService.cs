@@ -55,13 +55,13 @@ public sealed class LocalizationService : INotifyPropertyChanged
     /// <summary>Aktuell aktive UI-Sprache. Bei Zuweisung wird
     /// <see cref="LocalizedString.NotifyAllChanged"/> aufgerufen — das
     /// feuert auf jedem lebenden <see cref="LocalizedString"/>-Wrapper
-    /// ein regulaeres <c>PropertyChanged(nameof(Value))</c>, was von
-    /// Avalonias Binding-Engine zuverlaessig aufgeloest wird.
+    /// ein reguläres <c>PropertyChanged(nameof(Value))</c>, was von
+    /// Avalonias Binding-Engine zuverlässig aufgelöst wird.
     ///
     /// <b>Wichtig:</b> nicht auf <c>PropertyChanged("Item[]")</c> setzen —
-    /// diese WPF-Indexer-Konvention wird von Avalonia 12 nur unzuverlaessig
+    /// diese WPF-Indexer-Konvention wird von Avalonia 12 nur unzuverlässig
     /// gehandhabt (Bindings in nicht-fokussierten Fenstern bleiben stale
-    /// bis zum naechsten Fenster-Aufbau).</summary>
+    /// bis zum nächsten Fenster-Aufbau).</summary>
     public CultureInfo Current
     {
         get => _current;

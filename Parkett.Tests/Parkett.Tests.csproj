@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <!-- xunit.v3 4.x + .NET-10-SDK: der alte VSTest-Pfad ist entfernt,
-         "dotnet test" laeuft nur noch ueber Microsoft.Testing.Platform. -->
+         "dotnet test" läuft nur noch über Microsoft.Testing.Platform. -->
     <OutputType>Exe</OutputType>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>

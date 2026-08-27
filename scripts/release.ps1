@@ -1,5 +1,5 @@
-# Kroste-Release: prueft den Git-Zustand, erstellt einen annotierten Tag vX.Y.Z
-# und pusht ihn (loest die Release-Action aus).
+﻿# Kroste-Release: prüft den Git-Zustand, erstellt einen annotierten Tag vX.Y.Z
+# und pusht ihn (löst die Release-Action aus).
 # Versionsquelle: <Version> aus Directory.Build.props/csproj falls vorhanden
 # (NetScanner-Stil), sonst MinVer-Stil: letzter Tag + Bump-Abfrage.
 # Pure ASCII wegen Windows PowerShell 5.1 ANSI-Decoding; Aufruf bevorzugt via pwsh.
@@ -28,7 +28,7 @@ if (-not $version) {
 }
 
 if ($version -notmatch '^\d+\.\d+\.\d+$') {
-    Write-Error "'$version' ist keine gueltige SemVer-Version (X.Y.Z)."
+    Write-Error "'$version' ist keine gültige SemVer-Version (X.Y.Z)."
     exit 1
 }
 $tag = "v$version"
@@ -43,7 +43,7 @@ if (git log --branches --not --remotes --oneline) {
 }
 git rev-parse $tag 2>$null | Out-Null
 if ($LASTEXITCODE -eq 0) {
-    $answer = Read-Host "Tag $tag existiert bereits. Loeschen und neu setzen? [j/N]"
+    $answer = Read-Host "Tag $tag existiert bereits. Löschen und neu setzen? [j/N]"
     if ($answer -ne 'j') {
         Write-Host 'Abgebrochen.'
         exit 0

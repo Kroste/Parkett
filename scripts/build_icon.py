@@ -3,8 +3,8 @@ Parkett App-Icon-Generator.
 
 Design: drei Kerzen eines Candlestick-Charts in Kroste-Gold auf abgerundetem
 dunklem Grund. Ohne Text, damit es auch als 16x16-Favicon lesbar bleibt —
-drei senkrechte Balken unterschiedlicher Hoehe sind die kleinste Form, die
-noch eindeutig nach Boerse aussieht.
+drei senkrechte Balken unterschiedlicher Höhe sind die kleinste Form, die
+noch eindeutig nach Börse aussieht.
 
 Erzeugt:
 - Parkett/Assets/parkett.png  (256x256, master)
@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw
 
 # Kroste-Palette (aus App.axaml)
 GOLD = (224, 177, 76, 255)        # #E0B14C — Akzent der App
-GOLD_D = (168, 130, 48, 255)      # abgedunkelt fuer die fallende Kerze
+GOLD_D = (168, 130, 48, 255)      # abgedunkelt für die fallende Kerze
 SURFACE = (26, 29, 33, 255)       # #1A1D21
 BORDER = (46, 52, 60, 255)        # #2E343C
 TRANSP = (0, 0, 0, 0)
@@ -28,7 +28,7 @@ CORNER = 48
 APP_NAME = "parkett"
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "Parkett", "Assets")
 
-# (x-Mitte, Docht oben, Koerper oben, Koerper unten, Docht unten, steigend)
+# (x-Mitte, Docht oben, Körper oben, Körper unten, Docht unten, steigend)
 # Werte in 256er-Koordinaten, von links nach rechts gelesen wie ein Chart.
 CANDLES = [
     (74, 96, 120, 186, 206, True),
@@ -38,7 +38,7 @@ CANDLES = [
 
 
 def make_icon(size: int) -> Image.Image:
-    """Baut das Icon in der angegebenen Kantenlaenge."""
+    """Baut das Icon in der angegebenen Kantenlänge."""
     scale = size / 256
     img = Image.new("RGBA", (size, size), TRANSP)
     d = ImageDraw.Draw(img)
@@ -59,13 +59,13 @@ def make_icon(size: int) -> Image.Image:
         colour = GOLD if rising else GOLD_D
         x = cx * scale
 
-        # Docht: duenner Balken ueber die volle Hoehe
+        # Docht: dünner Balken über die volle Höhe
         d.rectangle(
             [(x - wick_half, wick_top * scale), (x + wick_half, wick_bottom * scale)],
             fill=colour,
         )
 
-        # Koerper: breiter Balken, abgerundet damit es bei 256px nicht hart wirkt
+        # Körper: breiter Balken, abgerundet damit es bei 256px nicht hart wirkt
         radius = max(1, int(4 * scale))
         d.rounded_rectangle(
             [(x - body_half, body_top * scale), (x + body_half, body_bottom * scale)],
@@ -84,7 +84,7 @@ def main() -> None:
     png_path = os.path.join(out_dir, f"{APP_NAME}.png")
     master.save(png_path)
 
-    # Windows-Multi-Res: jede Groesse einzeln rendern statt herunterzuskalieren,
+    # Windows-Multi-Res: jede Größe einzeln rendern statt herunterzuskalieren,
     # sonst verschwimmen die Dochte bei 16x16.
     sizes = [16, 24, 32, 48, 64, 128, 256]
     frames = [make_icon(s) for s in sizes]

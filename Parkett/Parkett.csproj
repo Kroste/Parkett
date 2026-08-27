@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- Windows-Exe-Icon; PNG-Pendant in Assets fuer Fenster/Tray -->
+    <!-- Windows-Exe-Icon; PNG-Pendant in Assets für Fenster/Tray -->
     <ApplicationIcon>Assets/parkett.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- Arbeitslaptop-Workaround (Sophos korrumpiert apphost.exe) bei Bedarf:

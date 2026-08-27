@@ -62,23 +62,23 @@ public partial class TitleBar : UserControl
     }
 
     /// <summary>
-    /// Laeuft vom Ereignis-Ursprung den Visual-Tree hoch bis zur Titelleisten-Border
+    /// Läuft vom Ereignis-Ursprung den Visual-Tree hoch bis zur Titelleisten-Border
     /// und meldet true, wenn unterwegs ein interaktives Control liegt.
     ///
     /// WARUM (Bug real in Checkmk Cockpit v1.7.5, Site-Umschalter): PointerPressed
-    /// bubbelt. Ein Button faengt den Press selbst ab und captured den Pointer —
+    /// bubbelt. Ein Button fängt den Press selbst ab und captured den Pointer —
     /// eine ComboBox tut das NICHT. Ohne diesen Guard startet BeginMoveDrag einen
     /// Fenster-Move-Drag, der Pointer wandert ans OS, und die ComboBox sieht nie ein
-    /// PointerReleased: das Dropdown laesst sich gar nicht mehr oeffnen, nur der
+    /// PointerReleased: das Dropdown lässt sich gar nicht mehr öffnen, nur der
     /// ToolTip erscheint noch. Die ElementRole-Rollen (HTCAPTION/HTCLIENT) helfen
     /// hier NICHT — sie regeln den OS-Hit-Test-Pfad, dieser Handler ist der managed
-    /// Fallback und laeuft davon unabhaengig.
+    /// Fallback und läuft davon unabhängig.
     /// </summary>
     private bool LandedOnInteractiveChild(object? source)
     {
         for (var v = source as Visual; v is not null; v = v.GetVisualParent())
         {
-            // Die Titelleiste selbst (und alles darueber) ist Drag-Flaeche.
+            // Die Titelleiste selbst (und alles darüber) ist Drag-Fläche.
             if (ReferenceEquals(v, Bar))
                 return false;
 
