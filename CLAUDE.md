@@ -10,13 +10,19 @@
 - **Struktur:** Flach (kein `src/`), `.slnx`, Central Package Management, `Directory.Build.props`,
   MinVer (Tags `v*`)
 - **Konventionen:** GlobalExceptionHandler, AboutWindow mit Version + BMC-Button,
-  `TreatWarningsAsErrors`, System-Tray, ChromeWindow für jedes Fenster
+  `TreatWarningsAsErrors` **plus `EnforceCodeStyleInBuild`** (Stilverstöße sind
+  Compile-Fehler), System-Tray, ChromeWindow für jedes Fenster, echte Umlaute in
+  jedem deutschen Text
 - **Kommunikation:** Deutsch, "du". Lars entwirft, Claude implementiert.
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 134 Tests grün, unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 135 Tests grün, unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
+
+Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
+angeschlossen, JsonStore-Quarantäne eingegrenzt, Emoji-Font-Fallback, Log-Pfade,
+Umlaute, `.editorconfig`, CI-Annotationen, VM-Aufteilung. Details in der Referenz.
 
 Fertig:
 
@@ -131,6 +137,16 @@ die Lizenz.
   und `<UseMicrosoftTestingPlatformRunner>` im Testprojekt. `Microsoft.NET.Test.Sdk` und
   `xunit.runner.visualstudio` müssen **raus**, sonst zieht der alte Pfad wieder.
   Außerdem liefert xunit.v3 4.x kein implizites `using Xunit` mehr → `GlobalUsings.cs`.
+- **Für eine TRX gibt es genau einen richtigen Schalter:** `--report-xunit-trx` hinter
+  dem `--`-Separator, von xunit.v3 selbst, ohne Zusatzpaket. `--logger "trx;…"` ist ein
+  VSTest-Flag: die Testing-Platform kennt es nicht, führt **null** Tests aus und endet
+  rot, ohne dass ein Test fehlgeschlagen wäre. Nicht mit `--report-trx` verwechseln, das
+  bräuchte `Microsoft.Testing.Extensions.TrxReport`. Die TRX landet in
+  `TestResults/test-results.trx` im Repo-Root, nicht neben der Test-DLL.
+- **Ein CI-Annotation-Schritt, der nichts findet, ist schlimmer als keiner.** Der Parser
+  in `ci.yml` wurde einmal gegen einen absichtlich kaputten Test geprüft (PR #3, wieder
+  verworfen) — er liefert Testname, Assertion und die Zeile im eigenen Testcode.
+  Wer ihn anfasst, macht diese Gegenprobe erneut.
 - **App.axaml bringt DataGrid-Styles mit** — ohne `Avalonia.Controls.DataGrid` plus
   `StyleInclude` bricht der Build mit AVLN2000.
 - **Avalonia 12**: `PlaceholderText` statt `Watermark`.
