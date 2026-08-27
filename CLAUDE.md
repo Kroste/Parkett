@@ -203,3 +203,19 @@ kein Fehlen des Fonts. Unter Linux mit Noto Color Emoji sieht es richtig aus. We
 | `Controls/CandlestickChart` | Zeichnet nur; Farben kommen als StyledProperty von außen |
 | `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung **nur bei kaputtem JSON**, stürzt nie an Nutzerdaten |
 | `Services/UpdateService` | Release-Check, Download, plattformeigenes Austausch-Skript |
+
+### Warum das Hauptfenster-VM auf fünf Dateien liegt
+
+`MainWindowViewModel` war 568 Zeilen lang; der Kroste-Standard zieht die Grenze bei
+etwa 300. Aufgeteilt als partial class nach Zuständigkeit, nicht nach Zeilenzahl:
+
+| Datei | Inhalt |
+|---|---|
+| `MainWindowViewModel.cs` | Felder, Konstruktor, gebundener Zustand |
+| `.Session.cs` | Starten, Fortsetzen, Beenden, Stand sichern |
+| `.Transport.cs` | Play/Pause, Einzelschritt, Tempo |
+| `.Orders.cs` | Kaufen, Verkaufen, Stornieren |
+| `.Presentation.cs` | Anzeigetexte und Sprachwechsel |
+
+Neue Funktionen gehören in die passende Datei — nicht zurück in den Kern, sonst
+wächst der binnen weniger Features wieder auf den alten Stand.
