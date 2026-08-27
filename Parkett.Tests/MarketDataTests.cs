@@ -26,6 +26,25 @@ public class MarketDataTests
         CsvHistoryProvider.TryParseCandle(string.Empty, out _).Should().BeFalse();
     }
 
+    [Theory]
+    // Genau die Zeilen, die scripts/fetch_history.py schreibt: ISO-Datum, Punkt als
+    // Dezimaltrenner, abgeschnittene Nullen, ganzzahliges Volumen. Driftet das
+    // Ausgabeformat des Skripts, bricht dieser Test statt einer stillen Fehlanzeige
+    // im Chart. Gegenstück: scripts/test_fetch_history.py prüft dieselbe Zeile von
+    // der anderen Seite.
+    [InlineData("2026-01-05,88.4,88.51,87.35,87.81,703819", 88.4, 87.81, 703819L)]
+    [InlineData("2026-05-07,109,109.8,107,107.49,1771740", 109, 107.49, 1771740L)]
+    [InlineData("2026-03-02,100.5,102,99.5,101.25,1234567", 100.5, 101.25, 1234567L)]
+    public void Ausgabe_des_Beschaffungsskripts_wird_gelesen(
+        string zeile, decimal erwarteterOpen, decimal erwarteterClose, long erwartetesVolumen)
+    {
+        CsvHistoryProvider.TryParseCandle(zeile, out var candle).Should().BeTrue();
+
+        candle.Open.Should().Be(erwarteterOpen);
+        candle.Close.Should().Be(erwarteterClose);
+        candle.Volume.Should().Be(erwartetesVolumen);
+    }
+
     [Fact]
     public void Fehlendes_Volumen_ist_kein_Fehler()
     {

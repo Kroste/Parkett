@@ -52,6 +52,11 @@ public sealed class CsvHistoryProvider : IMarketDataProvider
             .OrderBy(i => i.Symbol, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        // Ohne diese Zeile lässt sich nach einem Import nicht nachvollziehen, ob die
+        // Datei überhaupt gefunden wurde — der Dateiname entscheidet über das Symbol.
+        Log.Info("{Count} Instrumente in {Path}: {Symbols}",
+            matches.Count, _dataDirectory, string.Join(", ", matches.Select(m => m.Symbol)));
+
         return Task.FromResult<IReadOnlyList<Instrument>>(matches);
     }
 

@@ -79,9 +79,25 @@ the next start.
 Parkett reads prices from `Data/` (one CSV per symbol, `Date,Open,High,Low,Close,Volume`).
 Only `DEMO.csv` with made-up prices ships with the app.
 
-Which real data you may put there depends on where it comes from — historical closing
-prices at least one full trading day old are unproblematic, while delayed and real-time
-prices need an agreement with the exchange in question. Details in
+To trade real instruments, bring your own data with `scripts/fetch_history.py`:
+
+```bash
+# from a file you already have — broker export, spreadsheet, manual download
+python scripts/fetch_history.py csv ~/Downloads/sap.csv --symbol SAP
+
+# or through an API with your own key (free tier is enough for a dozen symbols)
+export ALPHAVANTAGE_KEY=your_key
+python scripts/fetch_history.py alphavantage AAPL MSFT
+```
+
+German exports are handled as they come — semicolons, comma decimals, `DD.MM.YYYY`,
+column names like `Datum` / `Schlusskurs` / `Umsatz`.
+
+**Why you fetch the data rather than Parkett shipping it:** historical closing prices
+at least one full trading day old need no exchange license, but the *data provider's*
+contract separately governs redistribution — and free tiers virtually never allow it.
+So the key is yours, the contract is yours, and Parkett redistributes nothing. The
+script drops any candle younger than a full trading day automatically. Details in
 [`Parkett/Data/README.md`](Parkett/Data/README.md).
 
 ## Settings

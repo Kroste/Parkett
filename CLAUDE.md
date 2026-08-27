@@ -17,7 +17,7 @@
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 135 Tests grün, unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 163 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
@@ -57,6 +57,10 @@ Fertig:
   durchgelaufen ist. Gebührenlast ganz oben, Equity-Kurve mit Startkapital-Linie und
   Drawdown-Marker, Kennzahlen, und ein Urteil in Worten. Vorschau ohne Sitzung über
   `Parkett.exe --report-preview <datei.png> [gewinn|verlust|gebuehren|leer]`.
+- **Datenbeschaffung** (`scripts/fetch_history.py`): holt EOD-Historie nach `Data/` —
+  aus einer vorhandenen Datei (auch deutsche Broker-Exporte) oder über Alpha Vantage
+  mit dem Schlüssel des Nutzers. Erzwingt die Handelstag-Grenze im Code. Eigene
+  Selbsttests (`scripts/test_fetch_history.py`), die in der CI mitlaufen.
 
 Noch nicht gebaut: siehe Roadmap.
 
@@ -64,31 +68,29 @@ Noch nicht gebaut: siehe Roadmap.
 
 Kurzfristig:
 
-1. **Datenbeschaffung.** Skript, das eine lizenzkonforme EOD-Historie nach `Data/` holt
-   (siehe `Parkett/Data/README.md`). Ohne echte Instrumente bleibt es beim DEMO-Wert.
-2. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
+1. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
    `Portfolio` kann das bereits, `SimulationClock` läuft noch auf einem Symbol.
    **Hängt daran:** die Equity-Kurve über mehrere Werte, und ob der Bericht dann
    pro Instrument oder für das Gesamtdepot aufschlüsselt.
-3. **Achievements-fähige Meilensteine** vorbereiten (erste Sitzung beendet, ohne
+2. **Achievements-fähige Meilensteine** vorbereiten (erste Sitzung beendet, ohne
    Totalverlust überstanden, 20 Rundläufe) — Aufhänger für die Steam-Integration.
    Der Abschlussbericht ist der natürliche Ort, sie auszulösen.
-4. **Bericht exportieren.** Der Bericht rendert sich bereits selbst in eine PNG
+3. **Bericht exportieren.** Der Bericht rendert sich bereits selbst in eine PNG
    (`--report-preview`); dieselbe Mechanik als „Bericht speichern"-Knopf im Fenster
    wäre wenig Aufwand und macht Sitzungen vergleichbar.
 
 Mittelfristig:
 
-5. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
+4. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
    Zugang; damit verbreitet Parkett keine Daten weiter und braucht keine eigene Lizenz.
    Das ist der Weg zu „live" ohne fünfstellige Monatskosten.
-6. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
+5. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
    Data Usage Declaration. Erst freischalten, wenn `AgreementReference` gesetzt ist —
    `MarketDataLicense.IsUsableInPaidBuild` erzwingt das bereits.
-7. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
+6. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
    Entitlement. Demo als eigene App-ID. **Früh testen, ob das Steam-Overlay mit Avalonia
    funktioniert** — Avalonia rendert über Skia, das Overlay hängt an DirectX/OpenGL-Hooks.
-8. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
+7. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
 
 ## Referenz
 
@@ -107,6 +109,21 @@ entscheidet über die Wirtschaftlichkeit des Produkts:
 Daraus folgt die Architektur: Die **Steam-Version** liefert Historie mit (auslieferbar),
 die **Pro-Version** nutzt den *eigenen* Zugang des Nutzers (keine Weiterverbreitung).
 Ein Provider mit `RequiresAgreement` bleibt gesperrt, solange kein Vertrag hinterlegt ist.
+
+**Die Tabelle beantwortet nur die halbe Frage.** Sie sagt, wann die *Börse* eine Lizenz
+verlangt. Unabhängig davon regelt der Vertrag des *Datenanbieters*, ob weiterverbreitet
+werden darf — und kostenlose Zugänge erlauben das praktisch nie. Beides muss stimmen.
+
+Deshalb holt `scripts/fetch_history.py` die Daten auf dem Rechner des Nutzers, statt
+dass Parkett sie mitliefert: Schlüssel und Vertrag gehören dem Nutzer, Parkett
+verbreitet nichts weiter. `.gitignore` nimmt `Parkett/Data/*.csv` deshalb aus — ein
+Repository ist eine Weiterverbreitung. Nur das erfundene `DEMO.csv` ist eingecheckt.
+
+**Offen für den Verkauf:** was der Steam-Version beiliegt. Erfundene Kursverläufe
+(wie `DEMO.csv`) sind uneingeschränkt auslieferbar und für einen Lernsimulator sogar
+didaktisch brauchbar — man kann Crash, Seitwärtsmarkt und Blase gezielt bauen, statt
+zu hoffen, dass die Historie sie hergibt. Echte Instrumente brauchen dagegen einen
+Anbieter, der die Weiterverbreitung schriftlich erlaubt.
 
 ### Warum Gebühren ein eigenes Konzept sind
 

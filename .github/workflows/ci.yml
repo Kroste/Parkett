@@ -22,6 +22,12 @@ jobs:
       - run: dotnet restore
       - run: dotnet build --no-restore -c Release
 
+      # Die Zahlen- und Datumserkennung des Beschaffungsskripts erzeugt bei einem
+      # Fehler keine Ausnahme, sondern still falsche Kurse. Kein Zusatzpaket nötig,
+      # das Skript nutzt nur die Standardbibliothek.
+      - name: Tests der Beschaffungsskripte
+        run: python3 scripts/test_fetch_history.py
+
       # --report-xunit-trx gehört HINTER den --Separator und kommt von xunit.v3
       # selbst (kein Zusatzpaket). Nicht mit --report-trx verwechseln, und
       # keinesfalls --logger "trx;..." nehmen: das ist ein VSTest-Flag, die

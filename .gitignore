@@ -7,5 +7,16 @@ publish/
 # Laufzeit-Ausgaben, die beim lokalen Start bzw. Testlauf entstehen
 logs/
 TestResults/
+
+# Selbst geholte Kursdaten bleiben lokal. Historische Kurse sind ohne
+# Börsenlizenz nutzbar, aber der Vertrag des Datenanbieters erlaubt praktisch
+# nie die Weiterverbreitung — und ein Repository ist eine Weiterverbreitung.
+# DEMO.csv ist erfunden und darf deshalb als einzige Datei mit.
+Parkett/Data/*.csv
+!Parkett/Data/DEMO.csv
 # Lokaler NuGet-Offline-Feed (Arbeitslaptop) — nie einchecken
 NuGet-Local/
+
+# Python-Bytecode der Beschaffungsskripte
+__pycache__/
+*.pyc
