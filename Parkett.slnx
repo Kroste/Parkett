@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Parkett/Parkett.csproj" />
+  <Project Path="Parkett.Tests/Parkett.Tests.csproj" />
+</Solution>

@@ -1,0 +1,107 @@
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Parkett.Views"
+        xmlns:controls="using:Parkett.Controls"
+        xmlns:vm="using:Parkett.ViewModels"
+        x:Class="Parkett.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1000" Height="680"
+        MinWidth="820" MinHeight="560"
+        Title="Parkett"
+        Background="{DynamicResource KrosteBackgroundBrush}">
+
+    <DockPanel>
+        <controls:TitleBar DockPanel.Dock="Top" Title="Parkett" />
+
+        <!-- Statuszeile: Datenquelle und Verzögerung sind Auflage praktisch jeder Datenlizenz -->
+        <Border DockPanel.Dock="Bottom"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource KrosteBorderBrush}"
+                Background="{DynamicResource KrosteTitleBarBrush}"
+                Padding="16,7">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding StatusText}" Classes="secondary" FontSize="12" />
+                <TextBlock Grid.Column="1" Text="{Binding DataSourceText}" Classes="muted" FontSize="12" Margin="16,0" />
+                <TextBlock Grid.Column="2" Text="{Binding EditionText}" Classes="muted" FontSize="12" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer>
+            <StackPanel Margin="24" Spacing="18">
+
+                <!-- Kopfbereich -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Parkett" Classes="h1" />
+                    <TextBlock Text="{Binding DisclaimerText}" Classes="secondary" />
+                </StackPanel>
+
+                <!-- Depot-Kennzahlen -->
+                <Border Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="DEPOT" Classes="section-label" />
+                        <Grid ColumnDefinitions="*,*,*,*" >
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Gesamtwert" Classes="muted" FontSize="12" />
+                                <TextBlock Text="{Binding EquityText}" Classes="h2" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Kasse" Classes="muted" FontSize="12" />
+                                <TextBlock Text="{Binding CashText}" Classes="h2" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Text="Gebühren gesamt" Classes="muted" FontSize="12" />
+                                <TextBlock Text="{Binding FeeText}" Classes="h2"
+                                           Foreground="{DynamicResource KrosteGoldBrush}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Spacing="2">
+                                <TextBlock Text="Ergebnis" Classes="muted" FontSize="12" />
+                                <TextBlock Text="{Binding ReturnText}" Classes="h2" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Ordereingabe -->
+                <Border Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="ORDER" Classes="section-label" />
+                        <Grid ColumnDefinitions="2*,Auto,120,Auto,Auto,Auto,Auto" >
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding Symbol}"
+                                     PlaceholderText="Symbol, z. B. SAP"
+                                     VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="Stück" Classes="muted"
+                                       VerticalAlignment="Center" Margin="12,0,8,0" />
+                            <TextBox Grid.Column="2"
+                                     Text="{Binding Quantity}"
+                                     VerticalAlignment="Center" />
+                            <Button Grid.Column="3" Classes="ghost" Margin="12,0,0,0"
+                                    Content="Kurs abrufen"
+                                    Command="{Binding RefreshQuoteCommand}" />
+                            <Button Grid.Column="4" Classes="accent" Margin="8,0,0,0"
+                                    Content="Kaufen"
+                                    Command="{Binding BuyCommand}" />
+                            <Button Grid.Column="5" Classes="danger" Margin="8,0,0,0"
+                                    Content="Verkaufen"
+                                    Command="{Binding SellCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding QuoteText}" Classes="secondary" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Ausführungen -->
+                <Border Classes="card-flat" MinHeight="200">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="AUSFÜHRUNGEN" Classes="section-label"
+                                   Margin="16,14,16,8" />
+                        <ListBox ItemsSource="{Binding Blotter}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Margin="8,0,8,8" />
+                    </DockPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</views:ChromeWindow>

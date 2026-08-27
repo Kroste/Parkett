@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Parkett (Debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/Parkett/bin/Debug/net10.0/Parkett.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Parkett",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Parkett (Attach)",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ]
+}

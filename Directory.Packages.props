@@ -1,0 +1,32 @@
+<Project>
+  <!-- Central Package Management: EINZIGER Ort für Paketversionen.
+       Stand: geprüft gegen NuGet beim Projektstart. -->
+  <ItemGroup>
+    <!-- Avalonia 12.1.1 (neueste stabile 12.x).
+         DiagnosticsSupport folgt NICHT der Avalonia-Version (eigene 2.x-Reihe)! -->
+    <PackageVersion Include="Avalonia" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="12.1.1" />
+    <!-- Nur Debug-Builds referenzieren dieses Paket (DevTools) -->
+    <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
+    <!-- Passend zur Avalonia-Version gepinnt (Linux DBus/Tray) -->
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.2" />
+
+    <!-- MVVM & DI -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+
+    <!-- Logging -->
+    <PackageVersion Include="NLog" Version="6.2.0" />
+
+    <!-- Versionierung -->
+    <PackageVersion Include="MinVer" Version="7.0.0" />
+
+    <!-- Tests (xunit.v3, NICHT das alte "xunit"-Paket — v2 ist deprecated);
+         FluentAssertions NICHT auf 8.x heben (Xceed-Lizenz) -->
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="FluentAssertions" Version="[7.2.2,8.0.0)" />
+  </ItemGroup>
+</Project>

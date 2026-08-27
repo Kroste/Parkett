@@ -1,0 +1,95 @@
+# Parkett
+
+[![CI](https://github.com/Kroste/Parkett/actions/workflows/ci.yml/badge.svg)](https://github.com/Kroste/Parkett/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Kroste/Parkett)](https://github.com/Kroste/Parkett/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Börsensimulator mit echten Kursen und virtuellem Geld — Desktop-App für Windows und Linux
+(C# / .NET 10 / Avalonia 12).
+
+Parkett handelt mit echten historischen Kursverläufen, aber ausschließlich mit Spielgeld.
+Es ist ein Übungs- und Lernwerkzeug: Du siehst, was deine Entscheidungen im Depot bewirken —
+einschließlich der Gebühren, die im Echtbetrieb den Unterschied machen.
+
+> **Kein echtes Geld, keine Anlageberatung.** Parkett gibt keine Kauf- oder
+> Verkaufsempfehlungen und ist weder Broker noch Finanzdienstleister.
+
+<!-- Screenshot: docs/screenshot.png einfügen, sobald die UI steht -->
+
+## Features
+
+- **Echte Kursverläufe:** Handel gegen historische Tagesdaten statt gegen einen Zufallsgenerator.
+- **Realistische Ausführung:** Käufe zum Briefkurs, Verkäufe zum Geldkurs — nie zur Mitte.
+  Market-, Limit- und Stop-Orders, Deckungsprüfung inklusive Gebühr.
+- **Gebühren, die wehtun:** Wählbares Gebührenmodell (Neobroker, Hausbank, gebührenfrei).
+  Die Gebührensumme steht dauerhaft im Hauptfenster.
+- **Kennzahlen:** Gesamtwert, realisiertes Ergebnis, maximaler Rückgang, Trefferquote
+  nach Gebühren.
+- **Transparente Datenquelle:** Die Statuszeile nennt immer Quelle und Verzögerung.
+- 🔄 **Update-Check:** Prüft GitHub-Releases (proxy-fähig) und installiert Updates auf Wunsch selbst.
+
+## Installation
+
+Fertige Pakete gibt es auf der [Releases-Seite](https://github.com/Kroste/Parkett/releases):
+
+**Windows:** `Parkett-X.Y.Z-win-x64.zip` herunterladen, entpacken, `Parkett.exe` starten.
+Keine Installation nötig (self-contained, .NET ist enthalten).
+
+**Linux (AppImage, empfohlen):**
+
+```bash
+chmod +x Parkett-*-x86_64.AppImage
+./Parkett-*-x86_64.AppImage
+```
+
+**Linux (tar.gz):** `Parkett-X.Y.Z-linux-x64.tar.gz` entpacken und `./Parkett` starten.
+
+## Bedienung
+
+1. **Symbol eingeben** — im Auslieferungszustand liegt `DEMO` bereit, ein erfundenes
+   Wertpapier für den ersten Rundgang.
+2. **Kurs abrufen** — die Statuszeile zeigt, aus welcher Quelle der Kurs stammt und wie
+   alt er ist.
+3. **Stückzahl setzen und Kaufen oder Verkaufen** — die Order wird sofort gegen den
+   aktuellen Kurs abgerechnet. Reicht das Guthaben nicht, sagt die Statuszeile warum.
+4. **Ausführungen prüfen** — jede Ausführung landet mit Kurs und Gebühr in der Liste.
+
+Das Depot startet mit 10.000 € Spielgeld. Leerverkäufe sind bewusst gesperrt.
+
+## Kursdaten
+
+Parkett liest Kurse aus `Data/` (eine CSV je Symbol, `Date,Open,High,Low,Close,Volume`).
+Mitgeliefert wird nur `DEMO.csv` mit erfundenen Kursen.
+
+Welche echten Daten du dort ablegen darfst, hängt von ihrer Herkunft ab — historische
+Schlusskurse ab einem vollen Handelstag Alter sind unkritisch, verzögerte und
+Echtzeitkurse brauchen eine Vereinbarung mit der jeweiligen Börse. Details in
+[`Parkett/Data/README.md`](Parkett/Data/README.md).
+
+## Einstellungen
+
+Der Lizenzschlüssel der Pro-Version liegt unter:
+
+- Windows: `%APPDATA%\Parkett\license.key`
+- Linux: `~/.config/Parkett/license.key`
+
+## Logs & Fehlersuche
+
+Logdateien liegen im Unterordner `logs/` neben der Anwendung (Tagesarchiv, 14 Tage).
+Bei einem Problem bitte ein Issue mit der aktuellen Logdatei eröffnen — Passwörter,
+Tokens und Lizenzschlüssel werden automatisch maskiert.
+
+## Entwicklung
+
+```bash
+dotnet build   # bauen
+dotnet test    # Tests (76 Stück)
+dotnet run --project Parkett
+```
+
+Release: VS-Code-Task „release (tag + push)" — prüft den Git-Zustand, setzt den Tag und
+stößt die GitHub-Action an, die alle Pakete baut.
+
+## Lizenz
+
+MIT — siehe [LICENSE](LICENSE).
