@@ -28,9 +28,12 @@ public sealed class TrayController
 
     private readonly Application _app;
     private readonly Window _window;
+    // Direkt erzeugt statt erst in BuildMenu: so sind sie nie null und die
+    // Texte lassen sich ohne Null-Prüfung nachziehen.
+    private readonly NativeMenuItem _showItem = new();
+    private readonly NativeMenuItem _quitItem = new();
+
     private TrayIcon? _tray;
-    private NativeMenuItem? _showItem;
-    private NativeMenuItem? _quitItem;
     private bool _restoreInProgress;
 
     public TrayController(Application app, Window window)
@@ -77,13 +80,11 @@ public sealed class TrayController
     {
         var menu = new NativeMenu();
 
-        _showItem = new NativeMenuItem();
         _showItem.Click += (_, _) => Restore();
         menu.Add(_showItem);
 
         menu.Add(new NativeMenuItemSeparator());
 
-        _quitItem = new NativeMenuItem();
         _quitItem.Click += (_, _) => Quit();
         menu.Add(_quitItem);
 
@@ -94,15 +95,8 @@ public sealed class TrayController
 
     private void ApplyMenuTexts()
     {
-        if (_showItem is not null)
-        {
-            _showItem.Header = L.T("Tray_Show");
-        }
-
-        if (_quitItem is not null)
-        {
-            _quitItem.Header = L.T("Tray_Quit");
-        }
+        _showItem.Header = L.T("Tray_Show");
+        _quitItem.Header = L.T("Tray_Quit");
     }
 
     private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
