@@ -4,126 +4,125 @@
 [![Release](https://img.shields.io/github/v/release/Kroste/Parkett)](https://github.com/Kroste/Parkett/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Börsensimulator mit echten Kursen und virtuellem Geld — Desktop-App für Windows und Linux
-(C# / .NET 10 / Avalonia 12).
+A stock market simulator with real prices and virtual money — a desktop app for
+Windows and Linux (C# / .NET 10 / Avalonia 12).
 
-Parkett handelt mit echten historischen Kursverläufen, aber ausschließlich mit Spielgeld.
-Es ist ein Übungs- und Lernwerkzeug: Du siehst, was deine Entscheidungen im Depot bewirken —
-einschließlich der Gebühren, die im Echtbetrieb den Unterschied machen.
+Parkett trades against real historical price series, but strictly with play money.
+It is a practice and learning tool: you see what your decisions do to a portfolio —
+including the fees that make the difference in real trading.
 
-> **Kein echtes Geld, keine Anlageberatung.** Parkett gibt keine Kauf- oder
-> Verkaufsempfehlungen und ist weder Broker noch Finanzdienstleister.
+> **No real money, no investment advice.** Parkett gives no buy or sell
+> recommendations and is neither a broker nor a financial service provider.
 
-<!-- Screenshot: docs/screenshot.png einfügen, sobald die UI steht -->
+<!-- Screenshot: add docs/screenshot.png once the UI has settled -->
 
 ## Features
 
-- **Echte Kursverläufe:** Handel gegen historische Tagesdaten statt gegen einen Zufallsgenerator.
-- **Kerzenchart mit Zeitsteuerung:** Die Sitzung läuft Kerze für Kerze vorwärts — Start,
-  Pause, Einzelschritt und vier Tempostufen. Der Chart zeigt nie eine Kerze, die du zum
-  Entscheidungszeitpunkt nicht kennen konntest.
-- **Realistische Ausführung:** Käufe zum Briefkurs, Verkäufe zum Geldkurs — nie zur Mitte.
-  Market-, Limit- und Stop-Orders, Deckungsprüfung inklusive Gebühr.
-- **Gebühren, die wehtun:** Wählbares Gebührenmodell (Neobroker, Hausbank, gebührenfrei).
-  Die Gebührensumme steht dauerhaft im Hauptfenster.
-- **Kennzahlen:** Gesamtwert, realisiertes Ergebnis, maximaler Rückgang, Trefferquote
-  nach Gebühren.
-- **Sitzung fortsetzen:** Beim Beenden wird der Stand gesichert und beim nächsten Start
-  an derselben Kerze fortgesetzt.
-- **Zweisprachig:** Deutsch und Englisch, live umschaltbar ohne Neustart.
-- **Transparente Datenquelle:** Die Statuszeile nennt immer Quelle und Verzögerung.
-- 🔄 **Selbstaktualisierung:** Parkett prüft beim Start (und jederzeit über *Über Parkett*),
-  ob eine neuere Fassung vorliegt, lädt sie auf Wunsch herunter, tauscht sich aus und
-  startet neu. Ohne Zustimmung passiert nichts.
+- **Real price series:** trade against historical daily data instead of a random
+  number generator.
+- **Candlestick chart with a clock:** the session moves forward candle by candle —
+  play, pause, single step and four speeds. The chart never shows a candle you
+  could not have known about at the time of your decision.
+- **Realistic execution:** buys at the ask, sells at the bid — never at the mid.
+  Market, limit and stop orders, with a funds check that includes the fee.
+- **Fees that hurt:** pick a fee model (neobroker, retail bank, or none). The
+  running fee total sits permanently in the main window.
+- **Metrics:** total value, realised result, maximum drawdown, hit rate after fees.
+- **Resume a session:** the state is saved on exit and picked up at the same candle
+  on the next start.
+- **Bilingual:** English and German, switchable live without a restart.
+- **Transparent data source:** the status bar always names the source and its delay.
+- 🔄 **Self-update:** Parkett checks on startup (and any time via *About Parkett*)
+  whether a newer version exists, downloads it on request, replaces itself and
+  restarts. Nothing happens without your consent.
 
 ## Installation
 
-Fertige Pakete gibt es auf der [Releases-Seite](https://github.com/Kroste/Parkett/releases):
+Prebuilt packages are on the [releases page](https://github.com/Kroste/Parkett/releases):
 
-**Windows:** `Parkett-X.Y.Z-win-x64.zip` herunterladen, entpacken, `Parkett.exe` starten.
-Keine Installation nötig (self-contained, .NET ist enthalten).
+**Windows:** download `Parkett-X.Y.Z-win-x64.zip`, extract it, run `Parkett.exe`.
+No installation needed (self-contained, .NET is included).
 
-**Linux (AppImage, empfohlen):**
+**Linux (AppImage, recommended):**
 
 ```bash
 chmod +x Parkett-*-x86_64.AppImage
 ./Parkett-*-x86_64.AppImage
 ```
 
-**Linux (tar.gz):** `Parkett-X.Y.Z-linux-x64.tar.gz` entpacken und `./Parkett` starten.
+**Linux (tar.gz):** extract `Parkett-X.Y.Z-linux-x64.tar.gz` and run `./Parkett`.
 
-## Bedienung
+## Using it
 
-1. **Instrument wählen und „Neue Sitzung"** — im Auslieferungszustand liegt `DEMO` bereit,
-   ein erfundenes Wertpapier für den ersten Rundgang. Der Chart zeigt zunächst 60 Kerzen
-   Vorlauf, damit du überhaupt etwas zu deuten hast.
-2. **Vorwärts laufen lassen** — „Start" lässt die Zeit weiterlaufen, „Schritt" deckt genau
-   eine Kerze auf. Das Tempo stellst du daneben ein.
-3. **Kaufen oder Verkaufen** — Stückzahl setzen und klicken. Lässt du Limit und Stop leer,
-   wird billigst bzw. bestens ausgeführt; mit Limit oder Stop wandert die Order ins Buch
-   und wartet auf den Kurs. Reicht das Guthaben nicht, sagt die Statuszeile warum.
-4. **Ausführungen prüfen** — jede Ausführung landet mit Kurs und Gebühr in der Liste und
-   als Dreieck im Chart.
-5. **Sitzungsende** — ist die Historie durchgelaufen, fasst die Statuszeile Ergebnis,
-   Rundläufe, Trefferquote und Gebührenlast zusammen.
+1. **Pick an instrument and hit "New session"** — `DEMO` ships with the app, a made-up
+   security for a first run. The chart starts with 60 candles of history so there is
+   something to read.
+2. **Let time run** — "Start" advances continuously, "Step" reveals exactly one candle.
+   The speed selector sits next to it.
+3. **Buy or sell** — set a quantity and click. Leave limit and stop empty and the order
+   executes at market; with a limit or stop it goes into the book and waits for the
+   price. If the cash is not enough, the status bar says so.
+4. **Check the executions** — every fill lands in the list with price and fee, and as a
+   triangle on the chart.
+5. **End of session** — once the history has run out, the status bar sums up result,
+   round trips, hit rate and fee drag.
 
-Das Depot startet mit 10.000 € Spielgeld. Leerverkäufe sind bewusst gesperrt.
+The portfolio starts with €10,000 of play money. Short selling is deliberately blocked.
 
-Beim Beenden wird die laufende Sitzung gesichert — beim nächsten Start bringt dich
-„Fortsetzen" an dieselbe Kerze zurück.
+The running session is saved on exit — "Resume" takes you back to the same candle on
+the next start.
 
-## Kursdaten
+## Price data
 
-Parkett liest Kurse aus `Data/` (eine CSV je Symbol, `Date,Open,High,Low,Close,Volume`).
-Mitgeliefert wird nur `DEMO.csv` mit erfundenen Kursen.
+Parkett reads prices from `Data/` (one CSV per symbol, `Date,Open,High,Low,Close,Volume`).
+Only `DEMO.csv` with made-up prices ships with the app.
 
-Welche echten Daten du dort ablegen darfst, hängt von ihrer Herkunft ab — historische
-Schlusskurse ab einem vollen Handelstag Alter sind unkritisch, verzögerte und
-Echtzeitkurse brauchen eine Vereinbarung mit der jeweiligen Börse. Details in
+Which real data you may put there depends on where it comes from — historical closing
+prices at least one full trading day old are unproblematic, while delayed and real-time
+prices need an agreement with the exchange in question. Details in
 [`Parkett/Data/README.md`](Parkett/Data/README.md).
 
-## Einstellungen
+## Settings
 
-Über das Zahnrad oben rechts:
+Via the gear icon in the top right:
 
-- **Sprache** — Deutsch oder Englisch, wirkt sofort in allen Fenstern.
-- **Gebührenmodell** — ohne Gebühren, Neobroker (1,00 € je Order) oder Hausbank
-  (4,90 € + 0,25 %, mindestens 9,90 €). Dieselbe Strategie mit verschiedenen Modellen zu
-  spielen ist der eigentliche Lerneffekt.
-- **Lizenzschlüssel** — für die Pro-Version aus dem Direktverkauf.
+- **Language** — English or German, applied immediately in every window.
+- **Fee model** — none, neobroker (€1.00 per order) or retail bank (€4.90 + 0.25 %,
+  minimum €9.90). Running the same strategy under different models is where the actual
+  lesson is.
+- **License key** — for the Pro version sold directly.
 
-Einstellungen und Sitzungsstand liegen unter `%APPDATA%\Parkett` bzw. `~/.config/Parkett`.
-Der Lizenzschlüssel der Pro-Version liegt unter:
+Settings and session state live in `%APPDATA%\Parkett` or `~/.config/Parkett`.
+The Pro license key is stored in:
 
-- Windows: `%APPDATA%\Parkett\settings.json` (Schlüssel verschlüsselt via DPAPI)
-- Linux: `~/.config/Parkett/settings.json` (Schlüssel verschlüsselt via AES-256-GCM)
+- Windows: `%APPDATA%\Parkett\settings.json` (key encrypted via DPAPI)
+- Linux: `~/.config/Parkett/settings.json` (key encrypted via AES-256-GCM)
 
-## Logs & Fehlersuche
+## Logs and troubleshooting
 
-Logdateien liegen im Nutzerprofil (Tagesarchiv, 14 Tage):
+Log files live in the user profile (daily archive, 14 days):
 
 - Windows: `%APPDATA%\Parkett\logs\`
 - Linux: `~/.config/Parkett/logs/`
 
-Bei einem Problem bitte ein Issue mit der aktuellen Logdatei eröffnen — Passwörter,
-Tokens und Lizenzschlüssel werden automatisch maskiert.
+If something goes wrong, please open an issue with the current log file — passwords,
+tokens and license keys are masked automatically.
 
-## Entwicklung
+## Development
 
-Das App-Icon wird aus einem Skript erzeugt, damit es reproduzierbar bleibt —
-`scripts/build_icon.py` (Pillow) und `scripts/build_icon.ps1` (System.Drawing,
-ohne Python-Abhängigkeit) liefern dasselbe Ergebnis. Bei Design-Änderungen
-beide anpassen.
+The app icon is generated from a script so it stays reproducible —
+`scripts/build_icon.py` (Pillow) and `scripts/build_icon.ps1` (System.Drawing, no
+Python dependency) produce the same result. Change both when the design changes.
 
 ```bash
-dotnet build   # bauen
-dotnet test    # Tests (134 Stück)
+dotnet build   # build
+dotnet test    # tests (135 of them)
 dotnet run --project Parkett
 ```
 
-Release: VS-Code-Task „release (tag + push)" — prüft den Git-Zustand, setzt den Tag und
-stößt die GitHub-Action an, die alle Pakete baut.
+Release: VS Code task "release (tag + push)" — it checks the git state, sets the tag
+and triggers the GitHub action that builds every package.
 
-## Lizenz
+## License
 
-MIT — siehe [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
