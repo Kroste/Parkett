@@ -6,6 +6,12 @@ namespace Parkett.Tests;
 public class FeeModelTests
 {
     [Fact]
+    public void Absichtlich_kaputt_zum_Pruefen_der_Annotation()
+    {
+        TieredFeeModel.Neobroker.CalculateFee(OrderSide.Buy, 1m, 100m).Should().Be(999m);
+    }
+
+    [Fact]
     public void Neobroker_nimmt_einen_Euro_unabhaengig_vom_Volumen()
     {
         TieredFeeModel.Neobroker.CalculateFee(OrderSide.Buy, 1m, 50m).Should().Be(1m);
