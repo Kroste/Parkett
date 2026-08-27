@@ -77,6 +77,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private string _statusText = L.T("Status_ChooseInstrument");
 
+    /// <summary>
+    /// Letzte Statusmeldung als Key plus Argumente. Ohne das lässt sich eine bereits
+    /// gesetzte Meldung beim Sprachwechsel nicht neu übersetzen — sie bliebe für immer
+    /// in der Sprache stehen, die beim Auslösen galt.
+    /// </summary>
+    private (string Key, object?[] Args) _status = ("Status_ChooseInstrument", []);
+
     [ObservableProperty]
     private string _quoteText = "—";
 
@@ -128,12 +135,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         _timer.Tick += (_, _) => Step();
 
 
-        EditionText = features.Current switch
-        {
-            Edition.Pro => L.T("Edition_Pro"),
-            Edition.Full => L.T("Edition_Full"),
-            _ => L.T("Edition_Free"),
-        };
+        // Sprachwechsel wirkt live: alle abgeleiteten Texte neu melden und neu rendern.
+        LocalizationService.Instance.PropertyChanged += (_, _) => OnLanguageChanged();
 
         UpdatePortfolioTexts();
         _ = LoadInstrumentsAsync();
@@ -182,7 +185,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     /// <summary>Wird bei jedem Zugriff neu erzeugt, damit der Sprachwechsel durchschlägt.</summary>
     public string DataSourceText => _dataProvider.License.StatusText;
 
-    public string EditionText { get; }
+    public string EditionText => _features.Current switch
+    {
+        Edition.Pro => L.T("Edition_Pro"),
+        Edition.Full => L.T("Edition_Full"),
+        _ => L.T("Edition_Free"),
+    };
 
     public string DisclaimerText => L.T("Main_Disclaimer");
 
@@ -213,7 +221,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
             if (history.Count < 2)
             {
-                StatusText = L.F("Status_NotEnoughHistory", instrument.Symbol);
+                SetStatus("Status_NotEnoughHistory", instrument.Symbol);
                 return;
             }
 
@@ -228,13 +236,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
             IsSessionRunning = true;
 
             RefreshFromClock();
-            StatusText = L.F("Status_SessionRunning", instrument.Symbol, history.Count);
+            SetStatus("Status_SessionRunning", instrument.Symbol, history.Count);
             Log.Info("Sitzung gestartet: {Symbol} mit {Count} Kerzen.", instrument.Symbol, history.Count);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Sitzungsstart für {Symbol} fehlgeschlagen.", instrument.Symbol);
-            StatusText = L.T("Status_StartFailed");
+            SetStatus("Status_StartFailed");
         }
         finally
         {
@@ -251,7 +259,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         if (snapshot is null)
         {
             HasSavedSession = false;
-            StatusText = L.T("Status_NoSavedSession");
+            SetStatus("Status_NoSavedSession");
             return;
         }
 
@@ -267,7 +275,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
             {
                 // Historie hat sich seit dem Speichern geändert — lieber ehrlich abbrechen
                 // als an der falschen Kerze weiterzuspielen.
-                StatusText = L.F("Status_ResumeStale", snapshot.Symbol);
+                SetStatus("Status_ResumeStale", snapshot.Symbol);
                 _sessionStore.Clear();
                 HasSavedSession = false;
                 return;
@@ -295,13 +303,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
             SelectedInstrument = Instruments.FirstOrDefault(i =>
                 string.Equals(i.Symbol, snapshot.Symbol, StringComparison.OrdinalIgnoreCase));
 
-            StatusText = L.F("Status_SessionResumed", snapshot.Symbol, _clock.Current.OpenTime.ToString("d", CultureInfo.CurrentCulture));
+            SetStatus("Status_SessionResumed", snapshot.Symbol, _clock.Current.OpenTime.ToString("d", CultureInfo.CurrentCulture));
             Log.Info("Sitzung fortgesetzt: {Symbol} bei Index {Index}.", snapshot.Symbol, snapshot.CandleIndex);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Sitzung konnte nicht fortgesetzt werden.");
-            StatusText = L.T("Status_ResumeFailed");
+            SetStatus("Status_ResumeFailed");
         }
         finally
         {
@@ -397,7 +405,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         HasSavedSession = false;
 
         var report = _session.Report();
-        StatusText = L.F(
+        SetStatus(
             "Status_SessionFinished",
             report.TotalReturnPercent.ToString("+0.00;-0.00;0.00", CultureInfo.CurrentCulture) + " %",
             report.TradeCount,
@@ -435,18 +443,57 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
                 if (Instruments.Count == 0)
                 {
-                    StatusText = L.T("Status_NoData");
+                    SetStatus("Status_NoData");
                 }
                 else if (instruments.Count > limit)
                 {
-                    StatusText = L.F("Status_InstrumentLimit", limit, instruments.Count, _features.UpgradeHint(Feature.UnlimitedInstruments));
+                    SetStatus("Status_InstrumentLimit", limit, instruments.Count, _features.UpgradeHint(Feature.UnlimitedInstruments));
                 }
             });
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Instrumentenliste konnte nicht geladen werden.");
-            StatusText = L.T("Status_InstrumentsFailed");
+            SetStatus("Status_InstrumentsFailed");
+        }
+    }
+
+    /// <summary>Setzt die Statusmeldung und merkt sie sich übersetzbar.</summary>
+    private void SetStatus(string key, params object?[] args)
+    {
+        _status = (key, args);
+        StatusText = L.F(key, args);
+    }
+
+    /// <summary>
+    /// Der Sprachwechsel läuft über LocalizedString für alle {loc:Tr}-Bindings — VM-Properties
+    /// erreicht er nicht von selbst. Hier werden sie nachgezogen.
+    /// </summary>
+    private void OnLanguageChanged()
+    {
+        StatusText = L.F(_status.Key, _status.Args);
+
+        OnPropertyChanged(nameof(DisclaimerText));
+        OnPropertyChanged(nameof(DataSourceText));
+        OnPropertyChanged(nameof(EditionText));
+        OnPropertyChanged(nameof(PlayButtonText));
+
+        UpdatePortfolioTexts();
+        RefreshOpenOrders();
+        RebuildBlotter();
+
+        // Die Kursanzeige entsteht in RefreshFromClock — ohne diesen Aufruf bliebe
+        // "Geld/Brief" in der alten Sprache stehen.
+        RefreshFromClock();
+    }
+
+    private void RebuildBlotter()
+    {
+        Blotter.Clear();
+
+        foreach (var fill in _session.Fills.OrderByDescending(f => f.ExecutedAt))
+        {
+            Blotter.Add(FormatFill(fill));
         }
     }
 
@@ -506,7 +553,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
         PositionText = quantity == 0m
             ? L.T("Portfolio_NoPosition")
-            : string.Create(CultureInfo.CurrentCulture, $"{quantity:N0} Stück @ {portfolio.GetPosition(symbol!)!.AveragePrice:N2}");
+            : L.F(
+                "Portfolio_PositionFormat",
+                quantity.ToString("N0", CultureInfo.CurrentCulture),
+                portfolio.GetPosition(symbol!)!.AveragePrice.ToString("N2", CultureInfo.CurrentCulture));
     }
 
     private static string FormatFill(Fill fill) =>

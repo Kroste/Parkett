@@ -31,7 +31,7 @@ public sealed partial class MainWindowViewModel
         if (_session.Cancel(id))
         {
             RefreshOpenOrders();
-            StatusText = L.T("Status_OrderCancelled");
+            SetStatus("Status_OrderCancelled");
         }
     }
 
@@ -62,11 +62,11 @@ public sealed partial class MainWindowViewModel
         {
             Blotter.Insert(0, FormatFill(fill));
             RefreshMarkers();
-            StatusText = side == OrderSide.Buy ? L.T("Status_Bought") : L.T("Status_Sold");
+            SetStatus(side == OrderSide.Buy ? "Status_Bought" : "Status_Sold");
         }
         else if (result.RemainsOpen)
         {
-            StatusText = L.T("Status_OrderResting");
+            SetStatus("Status_OrderResting");
         }
         else
         {

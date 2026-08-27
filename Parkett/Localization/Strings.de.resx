@@ -103,4 +103,11 @@
   <data name="Data_BundledHistoryName" xml:space="preserve"><value>Mitgelieferte Kurshistorie</value></data>
   <data name="Data_BundledHistoryNote" xml:space="preserve"><value>Historische Schlusskurse, mindestens einen Handelstag alt.</value></data>
   <data name="Quote_Format" xml:space="preserve"><value>{0}  {1}  (Geld {2} / Brief {3})</value></data>
+
+  <!-- ============ Gebührenmodelle ============ -->
+  <data name="Fee_Free" xml:space="preserve"><value>Ohne Gebühren</value></data>
+  <data name="Fee_Neobroker" xml:space="preserve"><value>Neobroker — 1,00 € je Order</value></data>
+  <data name="Fee_Hausbank" xml:space="preserve"><value>Hausbank — 4,90 € + 0,25 %, min. 9,90 €</value></data>
+  <data name="Settings_License_Unchecked" xml:space="preserve"><value>Dieser Build prüft keine Lizenzen.</value></data>
+  <data name="Portfolio_PositionFormat" xml:space="preserve"><value>{0} Stück @ {1}</value></data>
 </root>

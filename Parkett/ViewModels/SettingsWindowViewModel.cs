@@ -14,9 +14,14 @@ public sealed record CultureOption(string Iso, string Display, string Flag)
     public override string ToString() => $"{Flag} {Display}";
 }
 
-/// <summary>Auswahleintrag des Gebührenmodells.</summary>
-public sealed record FeeOption(string Id, string Display)
+/// <summary>
+/// Auswahleintrag des Gebührenmodells. Die Bezeichnung wird bei jedem Zugriff übersetzt,
+/// damit der Sprachwechsel auch in einer bereits gefüllten ComboBox greift.
+/// </summary>
+public sealed record FeeOption(string Id, string ResourceKey)
 {
+    public string Display => L.T(ResourceKey);
+
     public override string ToString() => Display;
 }
 
@@ -50,19 +55,42 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
         _selectedCulture = Cultures.FirstOrDefault(c => c.Iso == LocalizationService.Instance.CurrentIso)
                            ?? Cultures[0];
 
-        FeeOptions =
-        [
-            new FeeOption("Free", "Ohne Gebühren"),
-            new FeeOption("Neobroker", "Neobroker — 1,00 € je Order"),
-            new FeeOption("Hausbank", "Hausbank — 4,90 € + 0,25 %, min. 9,90 €"),
-        ];
+        _feeOptions = BuildFeeOptions();
 
         _selectedFee = FeeOptions.FirstOrDefault(f => f.Id == _settings.FeeModel) ?? FeeOptions[1];
+
+        LocalizationService.Instance.PropertyChanged += (_, _) => OnLanguageChanged();
     }
+
+    /// <summary>
+    /// Die ComboBox rendert ihre Einträge über ToString und merkt sich das Ergebnis.
+    /// Beim Sprachwechsel muss die Liste deshalb neu gebunden werden — und dabei geht
+    /// die Auswahl verloren, also vorher merken und danach zurücksetzen.
+    /// </summary>
+    private void OnLanguageChanged()
+    {
+        var selectedId = SelectedFee.Id;
+
+        FeeOptions = BuildFeeOptions();
+        SelectedFee = FeeOptions.First(f => f.Id == selectedId);
+    }
+
+    private static IReadOnlyList<FeeOption> BuildFeeOptions() =>
+    [
+        new FeeOption("Free", "Fee_Free"),
+        new FeeOption("Neobroker", "Fee_Neobroker"),
+        new FeeOption("Hausbank", "Fee_Hausbank"),
+    ];
 
     public IReadOnlyList<CultureOption> Cultures { get; }
 
-    public IReadOnlyList<FeeOption> FeeOptions { get; }
+    /// <summary>
+    /// Wird beim Sprachwechsel durch eine NEUE Listeninstanz ersetzt. Dieselbe Instanz erneut
+    /// zu melden reicht nicht: die ComboBox rendert ihre Einträge einmal über ToString und
+    /// baut nur bei einem echten ItemsSource-Wechsel neu auf.
+    /// </summary>
+    [ObservableProperty]
+    private IReadOnlyList<FeeOption> _feeOptions;
 
     [ObservableProperty]
     private CultureOption _selectedCulture;
@@ -101,7 +129,7 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
         {
             // Entwicklungsbuild ohne hinterlegten öffentlichen Schlüssel: Eingabe annehmen,
             // aber ehrlich sagen, dass hier nichts geprüft werden kann.
-            LicenseFeedback = "Dieser Build prüft keine Lizenzen.";
+            LicenseFeedback = L.T("Settings_License_Unchecked");
             return;
         }
 

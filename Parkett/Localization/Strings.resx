@@ -103,4 +103,11 @@
   <data name="Data_BundledHistoryName" xml:space="preserve"><value>Bundled price history</value></data>
   <data name="Data_BundledHistoryNote" xml:space="preserve"><value>Historical closing prices, at least one full trading day old.</value></data>
   <data name="Quote_Format" xml:space="preserve"><value>{0}  {1}  (bid {2} / ask {3})</value></data>
+
+  <!-- ============ Gebührenmodelle ============ -->
+  <data name="Fee_Free" xml:space="preserve"><value>No fees</value></data>
+  <data name="Fee_Neobroker" xml:space="preserve"><value>Neobroker — €1.00 per order</value></data>
+  <data name="Fee_Hausbank" xml:space="preserve"><value>Retail bank — €4.90 + 0.25 %, min. €9.90</value></data>
+  <data name="Settings_License_Unchecked" xml:space="preserve"><value>This build does not verify licenses.</value></data>
+  <data name="Portfolio_PositionFormat" xml:space="preserve"><value>{0} shares @ {1}</value></data>
 </root>
