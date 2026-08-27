@@ -18,7 +18,7 @@
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 163 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 168 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
@@ -211,6 +211,15 @@ die Lizenz.
   Fassungen grün — er beweist nichts. `Delete` blockiert das Lesen und erlaubt das
   Umbenennen; erst damit wird die alte Fassung rot. Der Test läuft nur unter Windows
   (`Assert.SkipUnless`), weil Linux keine verbindlichen Dateisperren kennt.
+- **Eine ComboBox schreibt beim Wechsel ihrer `ItemsSource` `null` ins ViewModel zurück.**
+  Der Sprachwechsel baut `FeeOptions` neu auf, damit die Einträge übersetzt neu rendern —
+  die ComboBox verwirft daraufhin ihre Auswahl, und `OnSelectedFeeChanged` lief in eine
+  NullReferenceException. Deshalb ist `SelectedFee` nullable, der Setter ignoriert `null`
+  und den unveränderten Wert, und `OnLanguageChanged` leert die Auswahl selbst, bevor die
+  Liste wechselt: sonst entscheidet die ComboBox, wann sie `null` meldet, und die
+  Wiederherstellung danach ist ein wertgleicher Record — der löst gar kein
+  `PropertyChanged` mehr aus. `SettingsWindowViewModelTests` hält die Reihenfolge fest.
+
 - **Ein Self-Update, das die App nicht selbst beendet, hängt bei 100 %.** Das
   Austausch-Skript wartet auf das Prozessende (`Wait-Process` bzw. `kill -0`).
   `DownloadAndApplyAsync` gibt nur `true` zurück — **jeder** Aufrufer muss danach

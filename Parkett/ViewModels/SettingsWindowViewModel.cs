@@ -66,13 +66,17 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
     /// Die ComboBox rendert ihre Einträge über ToString und merkt sich das Ergebnis.
     /// Beim Sprachwechsel muss die Liste deshalb neu gebunden werden — und dabei geht
     /// die Auswahl verloren, also vorher merken und danach zurücksetzen.
+    /// Die Auswahl wird bewusst selbst geleert, bevor die Liste wechselt: sonst
+    /// entscheidet die ComboBox, wann sie null zurückschreibt, und ein wertgleicher
+    /// Record danach löst gar kein PropertyChanged mehr aus.
     /// </summary>
     private void OnLanguageChanged()
     {
-        var selectedId = SelectedFee.Id;
+        var selectedId = SelectedFee?.Id ?? _settings.FeeModel;
 
+        SelectedFee = null;
         FeeOptions = BuildFeeOptions();
-        SelectedFee = FeeOptions.First(f => f.Id == selectedId);
+        SelectedFee = FeeOptions.FirstOrDefault(f => f.Id == selectedId) ?? FeeOptions[1];
     }
 
     private static IReadOnlyList<FeeOption> BuildFeeOptions() =>
@@ -95,8 +99,13 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
     [ObservableProperty]
     private CultureOption _selectedCulture;
 
+    /// <summary>
+    /// Nullable, weil die ComboBox beim Wechsel der <see cref="FeeOptions"/> ihre Auswahl
+    /// verwirft und null ins ViewModel zurückschreibt. Ohne das war der Sprachwechsel
+    /// eine NullReferenceException im Setter.
+    /// </summary>
     [ObservableProperty]
-    private FeeOption _selectedFee;
+    private FeeOption? _selectedFee;
 
     partial void OnSelectedCultureChanged(CultureOption value)
     {
@@ -107,8 +116,15 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
         Log.Info("UI-Sprache gewechselt auf {Iso}.", value.Iso);
     }
 
-    partial void OnSelectedFeeChanged(FeeOption value)
+    partial void OnSelectedFeeChanged(FeeOption? value)
     {
+        // Das Neubinden der Liste meldet zwischendurch null und danach denselben Wert —
+        // beides ist kein Nutzerwechsel und darf weder speichern noch loggen.
+        if (value is null || value.Id == _settings.FeeModel)
+        {
+            return;
+        }
+
         Persist(_settings with { FeeModel = value.Id });
         Log.Info("Gebührenmodell gewechselt auf {Model}.", value.Id);
     }
