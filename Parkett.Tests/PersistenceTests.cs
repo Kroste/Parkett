@@ -73,6 +73,34 @@ public class PersistenceTests
     }
 
     [Fact]
+    public void Gesperrte_Datei_wird_nicht_in_Quarantaene_geschoben()
+    {
+        // Ein IO-Fehler heißt nicht "kaputter Inhalt": Virenscanner und Netzlaufwerke
+        // sperren Dateien kurzzeitig. Ein .broken-Move würde hier gute Nutzerdaten
+        // wegräumen — genau der Verlust, den die Quarantäne verhindern soll.
+        //
+        // FileShare.None sperrt nur unter Windows verbindlich; Linux kennt keine
+        // Pflicht-Sperren, dort läse der zweite Zugriff die Datei einfach mit.
+        // Lieber ehrlich überspringen als im CI eine Prüfung vortäuschen.
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Dateisperren sind nur unter Windows verbindlich.");
+
+        using var dir = new TempDirectory();
+        var pfad = Path.Combine(dir.Path, "settings.json");
+        new SettingsService(dir.Path, new TestProtector()).Save(new AppSettings { LastSymbol = "SAP" });
+
+        // FileShare.Delete ist hier entscheidend, nicht FileShare.None: Lesen bleibt
+        // blockiert, Umbenennen erlaubt. Mit None scheitert auch der .broken-Move,
+        // und der Test wäre unter beiden Fassungen grün — er würde nichts beweisen.
+        using (File.Open(pfad, FileMode.Open, FileAccess.Read, FileShare.Delete))
+        {
+            new SettingsService(dir.Path, new TestProtector()).Load().Should().Be(AppSettings.Default);
+        }
+
+        File.Exists(pfad + ".broken").Should().BeFalse("die Datei war nur gesperrt, nicht defekt");
+        new SettingsService(dir.Path, new TestProtector()).Load().LastSymbol.Should().Be("SAP");
+    }
+
+    [Fact]
     public void Speichern_hinterlaesst_keine_temporaere_Datei()
     {
         using var dir = new TempDirectory();

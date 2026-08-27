@@ -38,10 +38,20 @@ public sealed class JsonStore(string filePath)
             var json = File.ReadAllText(_filePath);
             return JsonSerializer.Deserialize<T>(json, Options);
         }
-        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        catch (JsonException ex)
         {
-            // Defekte Datei NICHT überschreiben — sichern, damit sie später zu retten ist.
+            // Nur kaputter Inhalt wandert in Quarantäne: defekte Datei NICHT
+            // überschreiben, sondern sichern, damit sie später zu retten ist.
             RescueBroken(ex);
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // IO-Fehler heißt NICHT kaputter Inhalt — eine kurz gesperrte Datei
+            // (Virenscanner, Netzlaufwerk) enthält weiter gute Daten. Ein .broken-Move
+            // würde hier genau den Datenverlust verursachen, den die Regel verhindert.
+            Log.Error(ex, "Datei {Path} war nicht lesbar — es wird leer weitergestartet, "
+                          + "der Inhalt bleibt unangetastet.", _filePath);
             return null;
         }
     }

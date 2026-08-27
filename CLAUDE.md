@@ -138,6 +138,15 @@ die Lizenz.
   die beim App-Start galt.** Als Property halten, dann greift der Live-Wechsel.
 - **`AffectsRender<T>` nicht vergessen**, wenn ein selbstgezeichnetes Control neue
   StyledProperties bekommt — sonst bleibt der Chart nach einem Datenwechsel stehen.
+- **Quarantäne gehört an `JsonException`, nicht an `Exception`.** `JsonStore.Load`
+  hat anfangs auch bei `IOException` nach `.broken` verschoben — bei einer nur
+  kurz gesperrten Datei (Virenscanner, Netzlaufwerk) räumt das intakte Einstellungen
+  und die laufende Sitzung weg. Genau der Verlust, den die Rettung verhindern soll.
+- **Der Regressionstest dazu braucht `FileShare.Delete`, nicht `FileShare.None`.**
+  Mit `None` scheitert auch der `.broken`-Move, und der Test ist unter beiden
+  Fassungen grün — er beweist nichts. `Delete` blockiert das Lesen und erlaubt das
+  Umbenennen; erst damit wird die alte Fassung rot. Der Test läuft nur unter Windows
+  (`Assert.SkipUnless`), weil Linux keine verbindlichen Dateisperren kennt.
 - **Ein Self-Update, das die App nicht selbst beendet, hängt bei 100 %.** Das
   Austausch-Skript wartet auf das Prozessende (`Wait-Process` bzw. `kill -0`).
   `DownloadAndApplyAsync` gibt nur `true` zurück — **jeder** Aufrufer muss danach
@@ -183,5 +192,5 @@ Emoji-Font ebenfalls. Unter Linux mit Noto Color Emoji sieht es richtig aus. Wen
 | `Simulation/SimulationClock` | Deckt die Historie Kerze für Kerze auf, ohne eigenen Timer |
 | `Charting/ChartViewport` | Komplette Chart-Skalierung, ohne Avalonia-Bezug und testbar |
 | `Controls/CandlestickChart` | Zeichnet nur; Farben kommen als StyledProperty von außen |
-| `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung, stürzt nie an Nutzerdaten |
+| `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung **nur bei kaputtem JSON**, stürzt nie an Nutzerdaten |
 | `Services/UpdateService` | Release-Check, Download, plattformeigenes Austausch-Skript |
