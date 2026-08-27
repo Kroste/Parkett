@@ -1,8 +1,10 @@
 using FluentAssertions;
+using Parkett.Localization;
 using Parkett.Services;
 
 namespace Parkett.Tests;
 
+[Collection("Localization")]
 public class MarketDataTests
 {
     [Fact]
@@ -61,10 +63,26 @@ public class MarketDataTests
     [Fact]
     public void Statustext_nennt_die_Verzoegerung()
     {
-        new MarketDataLicense("Xetra", DataRedistributionRight.UserSuppliedCredentials, 15, "")
-            .StatusText.Should().Be("Xetra · 15 Min. verzögert");
+        var vorher = LocalizationService.Instance.Current;
 
-        new MarketDataLicense("Alpaca", DataRedistributionRight.UserSuppliedCredentials, 0, "")
-            .StatusText.Should().Be("Alpaca · Echtzeit");
+        try
+        {
+            LocalizationService.Instance.SetCulture("de");
+
+            new MarketDataLicense("Xetra", DataRedistributionRight.UserSuppliedCredentials, 15, "")
+                .StatusText.Should().Be("Xetra · 15 Min. verzögert");
+
+            new MarketDataLicense("Alpaca", DataRedistributionRight.UserSuppliedCredentials, 0, "")
+                .StatusText.Should().Be("Alpaca · Echtzeit");
+
+            LocalizationService.Instance.SetCulture("en");
+
+            new MarketDataLicense("Xetra", DataRedistributionRight.UserSuppliedCredentials, 15, "")
+                .StatusText.Should().Be("Xetra · delayed 15 min");
+        }
+        finally
+        {
+            LocalizationService.Instance.Current = vorher;
+        }
     }
 }

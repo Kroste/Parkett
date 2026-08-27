@@ -1,3 +1,4 @@
+using System.Globalization;
 using Parkett.Domain;
 
 namespace Parkett.Charting;
@@ -127,6 +128,22 @@ public sealed class ChartViewport
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// Kompaktes, aber kulturgerechtes Datumsformat für die Zeitachse: das kurze Datumsmuster
+    /// der aktuellen Kultur mit zweistelliger Jahreszahl. Ein hart kodiertes "dd.MM.yy" würde
+    /// in der englischen Fassung neben dem amerikanisch formatierten Ausführungsbuch stehen.
+    /// </summary>
+    public static string AxisDatePattern(CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+
+        var pattern = culture.DateTimeFormat.ShortDatePattern;
+
+        return pattern.Contains("yyyy", StringComparison.Ordinal)
+            ? pattern.Replace("yyyy", "yy", StringComparison.Ordinal)
+            : pattern;
     }
 
     /// <summary>Rundet einen Rohschritt auf den nächsten "schönen" Wert (1, 2, 5 × 10ⁿ).</summary>

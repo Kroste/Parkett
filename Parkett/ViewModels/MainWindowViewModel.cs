@@ -127,7 +127,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _timer.Tick += (_, _) => Step();
 
-        DataSourceText = dataProvider.License.StatusText;
+
         EditionText = features.Current switch
         {
             Edition.Pro => L.T("Edition_Pro"),
@@ -179,7 +179,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     /// <summary>True, wenn mindestens eine Order im Buch liegt — steuert die Sichtbarkeit der Karte.</summary>
     public bool HasOpenOrders => OpenOrders.Count > 0;
 
-    public string DataSourceText { get; }
+    /// <summary>Wird bei jedem Zugriff neu erzeugt, damit der Sprachwechsel durchschlägt.</summary>
+    public string DataSourceText => _dataProvider.License.StatusText;
 
     public string EditionText { get; }
 
@@ -460,9 +461,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         Progress = _clock.Total <= 1 ? 1d : (double)_clock.Index / (_clock.Total - 1);
 
         var quote = _clock.CurrentQuote;
-        QuoteText = string.Create(
-            CultureInfo.CurrentCulture,
-            $"{quote.Symbol}  {quote.Last:N2}  (Geld {quote.Bid:N2} / Brief {quote.Ask:N2})");
+        QuoteText = L.F(
+            "Quote_Format",
+            quote.Symbol,
+            quote.Last.ToString("N2", CultureInfo.CurrentCulture),
+            quote.Bid.ToString("N2", CultureInfo.CurrentCulture),
+            quote.Ask.ToString("N2", CultureInfo.CurrentCulture));
         DateText = _clock.Current.OpenTime.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
 
         UpdatePortfolioTexts();

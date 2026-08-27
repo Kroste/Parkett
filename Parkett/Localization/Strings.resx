@@ -94,4 +94,13 @@
   <data name="About_UpToDate" xml:space="preserve"><value>You have the latest version.</value></data>
   <data name="About_CheckFailed" xml:space="preserve"><value>Check failed.</value></data>
   <data name="About_Version" xml:space="preserve"><value>Version {0}</value></data>
+
+  <!-- ============ Datenquelle und Kurse ============ -->
+  <data name="Data_Realtime" xml:space="preserve"><value>{0} · real time</value></data>
+  <data name="Data_Delayed" xml:space="preserve"><value>{0} · delayed {1} min</value></data>
+  <data name="Data_PreviousClose" xml:space="preserve"><value>{0} · previous close</value></data>
+  <data name="Data_BundledHistory" xml:space="preserve"><value>Price history</value></data>
+  <data name="Data_BundledHistoryName" xml:space="preserve"><value>Bundled price history</value></data>
+  <data name="Data_BundledHistoryNote" xml:space="preserve"><value>Historical closing prices, at least one full trading day old.</value></data>
+  <data name="Quote_Format" xml:space="preserve"><value>{0}  {1}  (bid {2} / ask {3})</value></data>
 </root>

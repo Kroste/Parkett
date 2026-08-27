@@ -253,11 +253,12 @@ public sealed class CandlestickChart : Control
     private void DrawTimeAxis(DrawingContext context, ChartViewport viewport, double plotHeight)
     {
         var typeface = new Typeface(FontFamily.Default);
+        var pattern = ChartViewport.AxisDatePattern(CultureInfo.CurrentCulture);
 
         foreach (var (index, at) in viewport.TimeGridLines())
         {
             var text = new FormattedText(
-                at.ToString("dd.MM.yy", CultureInfo.CurrentCulture),
+                at.ToString(pattern, CultureInfo.CurrentCulture),
                 CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
                 typeface,

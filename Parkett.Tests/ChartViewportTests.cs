@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Parkett.Charting;
 using Parkett.Domain;
@@ -127,6 +128,22 @@ public class ChartViewportTests
         viewport.IndexAt(-5d).Should().BeNull();
         viewport.IndexAt(400d).Should().BeNull();
         viewport.IndexAt(150d).Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData("de-DE", "dd.MM.yy")]
+    [InlineData("en-US", "M/d/yy")]
+    [InlineData("en-GB", "dd/MM/yy")]
+    public void Achsendatum_folgt_der_Kultur(string kultur, string erwartet)
+    {
+        ChartViewport.AxisDatePattern(CultureInfo.GetCultureInfo(kultur)).Should().Be(erwartet);
+    }
+
+    [Fact]
+    public void Achsendatum_bleibt_zweistellig_im_Jahr()
+    {
+        ChartViewport.AxisDatePattern(CultureInfo.GetCultureInfo("de-DE"))
+            .Should().NotContain("yyyy", "auf der Achse ist kein Platz für vierstellige Jahre");
     }
 
     [Fact]

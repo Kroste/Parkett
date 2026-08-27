@@ -1,3 +1,5 @@
+using Parkett.Localization;
+
 namespace Parkett.Services;
 
 /// <summary>
@@ -47,11 +49,14 @@ public sealed record MarketDataLicense(
         _ => false,
     };
 
-    /// <summary>Text für die Statuszeile, z. B. "Xetra · 15 Min. verzögert".</summary>
+    /// <summary>
+    /// Text für die Statuszeile, z. B. "Xetra · 15 Min. verzögert". Die Verzögerung sichtbar
+    /// zu machen ist Auflage praktisch jeder Datenlizenz — deshalb steht sie dauerhaft in der UI.
+    /// </summary>
     public string StatusText => DelayMinutes switch
     {
-        0 => $"{SourceName} · Echtzeit",
-        < 60 => $"{SourceName} · {DelayMinutes} Min. verzögert",
-        _ => $"{SourceName} · Vortagesschluss",
+        0 => L.F("Data_Realtime", SourceName),
+        < 60 => L.F("Data_Delayed", SourceName, DelayMinutes),
+        _ => L.F("Data_PreviousClose", SourceName),
     };
 }

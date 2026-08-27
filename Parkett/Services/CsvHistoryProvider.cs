@@ -1,6 +1,7 @@
 using System.Globalization;
 using NLog;
 using Parkett.Domain;
+using Parkett.Localization;
 
 namespace Parkett.Services;
 
@@ -23,13 +24,15 @@ public sealed class CsvHistoryProvider : IMarketDataProvider
 
     public string Id => "csv-history";
 
-    public string DisplayName => "Mitgelieferte Kurshistorie";
+    public string DisplayName => L.T("Data_BundledHistoryName");
 
-    public MarketDataLicense License { get; } = new(
-        SourceName: "Kurshistorie",
+    // Property statt Feld: ein einmal initialisiertes Feld würde die Sprache einfrieren,
+    // die beim App-Start galt, und den Live-Wechsel aushebeln.
+    public MarketDataLicense License => new(
+        SourceName: L.T("Data_BundledHistory"),
         Redistribution: DataRedistributionRight.Redistributable,
         DelayMinutes: 1440,
-        AttributionText: "Historische Schlusskurse, mindestens einen Handelstag alt.");
+        AttributionText: L.T("Data_BundledHistoryNote"));
 
     public bool IsAvailable => Directory.Exists(_dataDirectory);
 
