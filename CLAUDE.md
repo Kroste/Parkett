@@ -15,7 +15,8 @@
 
 ## Aktueller Stand
 
-**v0.1.0 — Gerüst und Handelskern stehen, 76 Tests grün.**
+**v0.2.0 — spielbar. 134 Tests grün, unter Xvfb end-to-end verifiziert
+(Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Fertig:
 
@@ -32,8 +33,16 @@ Fertig:
   Lizenzschlüssel (ECDSA P-256, kein Aktivierungsserver).
 - **App-Gerüst**: DI, NLog mit Masking, GlobalExceptionHandler, Tray, ChromeWindow,
   AboutWindow, UpdateService mit echtem Self-Update, App-Icon, CI/Release-Workflows.
-- **MainWindow**: Depot-Kennzahlen, Ordereingabe, Ausführungsliste, Statuszeile mit
-  Datenquelle und Verzögerung.
+- **Zeitsteuerung** (`Simulation/`): `SimulationClock` deckt die Historie Kerze für Kerze
+  auf, mit Vorlauf, Play/Pause/Schritt und vier Tempostufen.
+- **Chart** (`Charting/` + `Controls/CandlestickChart.cs`): Kerzen, Preisraster auf runden
+  Werten, kulturgerechte Zeitachse, Fadenkreuz, Marker für eigene Ausführungen.
+- **Persistenz** (`Persistence/`): Einstellungen und unterbrochene Sitzung, atomar
+  geschrieben, Lizenzschlüssel inline verschlüsselt.
+- **Lokalisierung**: EN + DE, Wechsel live in allen Fenstern.
+- **Einstellungen-Fenster**: Sprache, Gebührenmodell, Lizenzschlüssel.
+- **MainWindow**: Chart, Transportleiste, Depot-Kennzahlen, Order mit Limit und Stop,
+  Buch der offenen Orders, Ausführungsliste, Statuszeile mit Datenquelle und Verzögerung.
 
 Noch nicht gebaut: siehe Roadmap.
 
@@ -41,28 +50,28 @@ Noch nicht gebaut: siehe Roadmap.
 
 Kurzfristig:
 
-1. **Lokalisierung nachziehen (EN + DE).** Die Bausteine in `Localization/` sind da, die
-   UI-Texte stehen aber noch fest im XAML. Kroste-Pflicht — vor dem ersten Release erledigen.
-2. **Chart-Ansicht.** Candlestick-Darstellung der Historie mit Zeitachse, plus Marker für
-   eigene Ausführungen. Ohne Chart fehlt dem Simulator die Hauptsache.
-3. **Zeitsteuerung.** Sitzung Tag für Tag oder Kerze für Kerze vorwärts laufen lassen,
-   mit Pause/Geschwindigkeit — das ist die eigentliche Spielschleife.
-4. **Persistenz** nach `references/persistence.md`: Depot, Orderbuch und Verlauf über
-   Neustarts halten (atomar via tmp+move, Lizenzschlüssel inline verschlüsselt).
-5. **Datenbeschaffung**: Skript, das eine lizenzkonforme EOD-Historie in `Data/` erzeugt.
+1. **Datenbeschaffung.** Skript, das eine lizenzkonforme EOD-Historie nach `Data/` holt
+   (siehe `Parkett/Data/README.md`). Ohne echte Instrumente bleibt es beim DEMO-Wert.
+2. **Abschlussbericht als Fenster.** Die Sitzung endet aktuell mit einer Statuszeile.
+   Ein eigener Bericht mit Equity-Kurve, Drawdown und Gebührenlast ist der Moment, in
+   dem der Simulator seine Lehre erteilt.
+3. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
+   `Portfolio` kann das bereits, `SimulationClock` läuft noch auf einem Symbol.
+4. **Achievements-fähige Meilensteine** vorbereiten (erste Sitzung beendet, ohne
+   Totalverlust überstanden, 20 Rundläufe) — Aufhänger für die Steam-Integration.
 
 Mittelfristig:
 
-6. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
+5. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
    Zugang; damit verbreitet Parkett keine Daten weiter und braucht keine eigene Lizenz.
    Das ist der Weg zu „live" ohne fünfstellige Monatskosten.
-7. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
+6. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
    Data Usage Declaration. Erst freischalten, wenn `AgreementReference` gesetzt ist —
    `MarketDataLicense.IsUsableInPaidBuild` erzwingt das bereits.
-8. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
+7. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
    Entitlement. Demo als eigene App-ID. **Früh testen, ob das Steam-Overlay mit Avalonia
    funktioniert** — Avalonia rendert über Skia, das Overlay hängt an DirectX/OpenGL-Hooks.
-9. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
+8. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
 
 ## Referenz
 
@@ -121,6 +130,34 @@ die Lizenz.
 - **App.axaml bringt DataGrid-Styles mit** — ohne `Avalonia.Controls.DataGrid` plus
   `StyleInclude` bricht der Build mit AVLN2000.
 - **Avalonia 12**: `PlaceholderText` statt `Watermark`.
+- **Ein Provider, der seine `MarketDataLicense` in einem Feld hält, friert die Sprache ein,
+  die beim App-Start galt.** Als Property halten, dann greift der Live-Wechsel.
+- **`AffectsRender<T>` nicht vergessen**, wenn ein selbstgezeichnetes Control neue
+  StyledProperties bekommt — sonst bleibt der Chart nach einem Datenwechsel stehen.
+
+### Sprachwechsel: was live geht und was nicht
+
+`{loc:Tr Key}` im XAML aktualisiert sich von selbst — das erledigt der statisch gecachte
+`LocalizedString`-Wrapper. **Alles, was ein ViewModel als fertigen String liefert, nicht.**
+Beide ViewModels hängen sich deshalb an `LocalizationService.PropertyChanged` und rendern
+ihre abgeleiteten Texte neu. Zwei Details, die dabei zählen:
+
+- Statusmeldungen werden als `(Key, Args)` gemerkt, nicht als fertiger Text — sonst lässt
+  sich eine bereits gesetzte Meldung gar nicht mehr übersetzen.
+- Eine ComboBox rendert ihre Einträge einmal über `ToString` und baut nur bei einem echten
+  `ItemsSource`-Wechsel neu auf. Dieselbe Listeninstanz erneut zu melden reicht nicht.
+
+**Bewusst nicht mitgeschaltet:** `CultureInfo.CurrentCulture`. Zahlen und Datumsangaben
+folgen weiter der OS-Kultur. Sie mitzuschalten würde mitten in der Sitzung das
+Dezimaltrennzeichen der Eingabefelder ändern — ein Nutzer, der gerade „103,50" getippt hat,
+hätte plötzlich eine ungültige Eingabe.
+
+### Bekannte Einschränkung: Flaggen-Emoji
+
+Der Sprachumschalter nutzt Regional-Indicator-Emoji (🇩🇪/🇬🇧). Windows rendert die
+grundsätzlich nicht als Flaggen, sondern als Buchstabenpaar; im Testcontainer ohne
+Emoji-Font ebenfalls. Unter Linux mit Noto Color Emoji sieht es richtig aus. Wenn es
+überall gleich aussehen soll, müssen kleine Flaggen-PNGs als Assets mitgeliefert werden.
 
 ### Wichtige Klassen
 
@@ -132,3 +169,7 @@ die Lizenz.
 | `Services/TradingSession` | Klammert alles zusammen, hält Orderbuch und Equity-Kurve |
 | `Services/MarketDataLicense` | Rechtsrahmen einer Datenquelle, gatet den Verkaufsbuild |
 | `Licensing/FeatureGate` | Einzige Tabelle, welche Funktion welche Stufe braucht |
+| `Simulation/SimulationClock` | Deckt die Historie Kerze für Kerze auf, ohne eigenen Timer |
+| `Charting/ChartViewport` | Komplette Chart-Skalierung, ohne Avalonia-Bezug und testbar |
+| `Controls/CandlestickChart` | Zeichnet nur; Farben kommen als StyledProperty von außen |
+| `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung, stürzt nie an Nutzerdaten |

@@ -19,12 +19,18 @@ einschließlich der Gebühren, die im Echtbetrieb den Unterschied machen.
 ## Features
 
 - **Echte Kursverläufe:** Handel gegen historische Tagesdaten statt gegen einen Zufallsgenerator.
+- **Kerzenchart mit Zeitsteuerung:** Die Sitzung läuft Kerze für Kerze vorwärts — Start,
+  Pause, Einzelschritt und vier Tempostufen. Der Chart zeigt nie eine Kerze, die du zum
+  Entscheidungszeitpunkt nicht kennen konntest.
 - **Realistische Ausführung:** Käufe zum Briefkurs, Verkäufe zum Geldkurs — nie zur Mitte.
   Market-, Limit- und Stop-Orders, Deckungsprüfung inklusive Gebühr.
 - **Gebühren, die wehtun:** Wählbares Gebührenmodell (Neobroker, Hausbank, gebührenfrei).
   Die Gebührensumme steht dauerhaft im Hauptfenster.
 - **Kennzahlen:** Gesamtwert, realisiertes Ergebnis, maximaler Rückgang, Trefferquote
   nach Gebühren.
+- **Sitzung fortsetzen:** Beim Beenden wird der Stand gesichert und beim nächsten Start
+  an derselben Kerze fortgesetzt.
+- **Zweisprachig:** Deutsch und Englisch, live umschaltbar ohne Neustart.
 - **Transparente Datenquelle:** Die Statuszeile nennt immer Quelle und Verzögerung.
 - 🔄 **Update-Check:** Prüft GitHub-Releases (proxy-fähig) und installiert Updates auf Wunsch selbst.
 
@@ -46,15 +52,23 @@ chmod +x Parkett-*-x86_64.AppImage
 
 ## Bedienung
 
-1. **Symbol eingeben** — im Auslieferungszustand liegt `DEMO` bereit, ein erfundenes
-   Wertpapier für den ersten Rundgang.
-2. **Kurs abrufen** — die Statuszeile zeigt, aus welcher Quelle der Kurs stammt und wie
-   alt er ist.
-3. **Stückzahl setzen und Kaufen oder Verkaufen** — die Order wird sofort gegen den
-   aktuellen Kurs abgerechnet. Reicht das Guthaben nicht, sagt die Statuszeile warum.
-4. **Ausführungen prüfen** — jede Ausführung landet mit Kurs und Gebühr in der Liste.
+1. **Instrument wählen und „Neue Sitzung"** — im Auslieferungszustand liegt `DEMO` bereit,
+   ein erfundenes Wertpapier für den ersten Rundgang. Der Chart zeigt zunächst 60 Kerzen
+   Vorlauf, damit du überhaupt etwas zu deuten hast.
+2. **Vorwärts laufen lassen** — „Start" lässt die Zeit weiterlaufen, „Schritt" deckt genau
+   eine Kerze auf. Das Tempo stellst du daneben ein.
+3. **Kaufen oder Verkaufen** — Stückzahl setzen und klicken. Lässt du Limit und Stop leer,
+   wird billigst bzw. bestens ausgeführt; mit Limit oder Stop wandert die Order ins Buch
+   und wartet auf den Kurs. Reicht das Guthaben nicht, sagt die Statuszeile warum.
+4. **Ausführungen prüfen** — jede Ausführung landet mit Kurs und Gebühr in der Liste und
+   als Dreieck im Chart.
+5. **Sitzungsende** — ist die Historie durchgelaufen, fasst die Statuszeile Ergebnis,
+   Rundläufe, Trefferquote und Gebührenlast zusammen.
 
 Das Depot startet mit 10.000 € Spielgeld. Leerverkäufe sind bewusst gesperrt.
+
+Beim Beenden wird die laufende Sitzung gesichert — beim nächsten Start bringt dich
+„Fortsetzen" an dieselbe Kerze zurück.
 
 ## Kursdaten
 
@@ -68,10 +82,19 @@ Echtzeitkurse brauchen eine Vereinbarung mit der jeweiligen Börse. Details in
 
 ## Einstellungen
 
+Über das Zahnrad oben rechts:
+
+- **Sprache** — Deutsch oder Englisch, wirkt sofort in allen Fenstern.
+- **Gebührenmodell** — ohne Gebühren, Neobroker (1,00 € je Order) oder Hausbank
+  (4,90 € + 0,25 %, mindestens 9,90 €). Dieselbe Strategie mit verschiedenen Modellen zu
+  spielen ist der eigentliche Lerneffekt.
+- **Lizenzschlüssel** — für die Pro-Version aus dem Direktverkauf.
+
+Einstellungen und Sitzungsstand liegen unter `%APPDATA%\Parkett` bzw. `~/.config/Parkett`.
 Der Lizenzschlüssel der Pro-Version liegt unter:
 
-- Windows: `%APPDATA%\Parkett\license.key`
-- Linux: `~/.config/Parkett/license.key`
+- Windows: `%APPDATA%\Parkett\settings.json` (Schlüssel verschlüsselt via DPAPI)
+- Linux: `~/.config/Parkett/settings.json` (Schlüssel verschlüsselt via AES-256-GCM)
 
 ## Logs & Fehlersuche
 
@@ -83,7 +106,7 @@ Tokens und Lizenzschlüssel werden automatisch maskiert.
 
 ```bash
 dotnet build   # bauen
-dotnet test    # Tests (76 Stück)
+dotnet test    # Tests (134 Stück)
 dotnet run --project Parkett
 ```
 
