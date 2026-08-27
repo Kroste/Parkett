@@ -4,46 +4,78 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NLog;
+using Parkett.Charting;
 using Parkett.Domain;
 using Parkett.Licensing;
 using Parkett.Services;
+using Parkett.Simulation;
 
 namespace Parkett.ViewModels;
 
 /// <summary>
-/// Hauptfenster-VM. Bleibt bewusst dünn: alles Rechnende liegt in
-/// <see cref="TradingSession"/> und ist dort ohne UI getestet.
+/// Hauptfenster-VM: Sitzungsablauf, Chart und Kennzahlen. Die Orderbefehle liegen in
+/// <c>MainWindowViewModel.Orders.cs</c>, das Rechnende in <see cref="TradingSession"/>
+/// und <see cref="SimulationClock"/> — beide ohne UI getestet.
 /// </summary>
-public sealed partial class MainWindowViewModel : ViewModelBase
+public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
+    /// <summary>Startkapital der Übungssitzung. Klein genug, dass Gebühren spürbar sind.</summary>
+    public const decimal StartingCash = 10_000m;
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly IMarketDataProvider _dataProvider;
+    private readonly IFeeModel _feeModel;
     private readonly FeatureGate _features;
-    private readonly TradingSession _session;
+    private readonly DispatcherTimer _timer;
+
+    private TradingSession _session;
+    private SimulationClock? _clock;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
     [NotifyCanExecuteChangedFor(nameof(SellCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RefreshQuoteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StepCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TogglePlayCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartSessionCommand))]
     private bool _isBusy;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SellCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RefreshQuoteCommand))]
-    private string _symbol = string.Empty;
+    [NotifyCanExecuteChangedFor(nameof(StartSessionCommand))]
+    private Instrument? _selectedInstrument;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
     [NotifyCanExecuteChangedFor(nameof(SellCommand))]
-    private decimal _quantity = 1m;
+    private decimal _quantity = 10m;
 
     [ObservableProperty]
-    private string _statusText = "Bereit.";
+    [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SellCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StepCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TogglePlayCommand))]
+    private bool _isSessionRunning;
+
+    [ObservableProperty]
+    private SimulationSpeed _speed = SimulationSpeed.Paused;
+
+    /// <summary>Zuletzt gewählte Stufe — merkt sich das Tempo über eine Pause hinweg.</summary>
+    private SimulationSpeed _pendingSpeed = SimulationSpeed.Normal;
+
+    [ObservableProperty]
+    private IReadOnlyList<Candle> _chartCandles = [];
+
+    [ObservableProperty]
+    private IReadOnlyList<ChartMarker> _chartMarkers = [];
+
+    [ObservableProperty]
+    private string _statusText = "Instrument wählen und Sitzung starten.";
 
     [ObservableProperty]
     private string _quoteText = "—";
+
+    [ObservableProperty]
+    private string _dateText = "—";
 
     [ObservableProperty]
     private string _equityText = "—";
@@ -52,16 +84,26 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private string _cashText = "—";
 
     [ObservableProperty]
+    private string _positionText = "—";
+
+    [ObservableProperty]
     private string _feeText = "—";
 
     [ObservableProperty]
     private string _returnText = "—";
 
+    [ObservableProperty]
+    private double _progress;
+
     public MainWindowViewModel(IMarketDataProvider dataProvider, IFeeModel feeModel, FeatureGate features)
     {
         _dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
+        _feeModel = feeModel ?? throw new ArgumentNullException(nameof(feeModel));
         _features = features ?? throw new ArgumentNullException(nameof(features));
         _session = new TradingSession(StartingCash, feeModel);
+
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _timer.Tick += (_, _) => Step();
 
         DataSourceText = dataProvider.License.StatusText;
         EditionText = features.Current switch
@@ -72,12 +114,48 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         };
 
         UpdatePortfolioTexts();
+        _ = LoadInstrumentsAsync();
     }
 
-    /// <summary>Startkapital der Übungssitzung. Bewusst klein — der Lerneffekt liegt in den Gebühren.</summary>
-    public const decimal StartingCash = 10_000m;
+    public ObservableCollection<Instrument> Instruments { get; } = [];
 
     public ObservableCollection<string> Blotter { get; } = [];
+
+    public ObservableCollection<OpenOrderRow> OpenOrders { get; } = [];
+
+    public IReadOnlyList<SpeedOption> Speeds { get; } =
+    [
+        SpeedOption.For(SimulationSpeed.Slow),
+        SpeedOption.For(SimulationSpeed.Normal),
+        SpeedOption.For(SimulationSpeed.Fast),
+        SpeedOption.For(SimulationSpeed.VeryFast),
+    ];
+
+    /// <summary>Auswahl der ComboBox. Setzt <see cref="Speed"/>, sobald die Sitzung läuft.</summary>
+    public SpeedOption? SelectedSpeed
+    {
+        get => Speeds.FirstOrDefault(s => s.Value == _pendingSpeed);
+        set
+        {
+            if (value is null || value.Value == _pendingSpeed)
+            {
+                return;
+            }
+
+            _pendingSpeed = value.Value;
+            OnPropertyChanged();
+
+            // Tempo umstellen wirkt nur, wenn gerade gespielt wird — sonst bleibt die
+            // Pause bestehen und die Stufe greift beim nächsten Start.
+            if (Speed != SimulationSpeed.Paused)
+            {
+                Speed = _pendingSpeed;
+            }
+        }
+    }
+
+    /// <summary>True, wenn mindestens eine Order im Buch liegt — steuert die Sichtbarkeit der Karte.</summary>
+    public bool HasOpenOrders => OpenOrders.Count > 0;
 
     public string DataSourceText { get; }
 
@@ -86,39 +164,52 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public string DisclaimerText =>
         "Virtuelles Geld. Keine Anlageberatung, keine Kauf- oder Verkaufsempfehlung.";
 
-    private bool CanTrade => !IsBusy && !string.IsNullOrWhiteSpace(Symbol) && Quantity > 0m;
+    public string PlayButtonText => Speed == SimulationSpeed.Paused ? "▶  Start" : "⏸  Pause";
 
-    [RelayCommand(CanExecute = nameof(CanTrade))]
-    private Task BuyAsync() => TradeAsync(OrderSide.Buy);
+    private bool CanStart => !IsBusy && SelectedInstrument is not null;
 
-    [RelayCommand(CanExecute = nameof(CanTrade))]
-    private Task SellAsync() => TradeAsync(OrderSide.Sell);
+    private bool CanStep => !IsBusy && IsSessionRunning;
 
-    [RelayCommand(CanExecute = nameof(CanRefresh))]
-    private async Task RefreshQuoteAsync()
+    [RelayCommand(CanExecute = nameof(CanStart))]
+    private async Task StartSessionAsync()
     {
+        if (SelectedInstrument is not { } instrument)
+        {
+            return;
+        }
+
         IsBusy = true;
 
         try
         {
-            var quote = await _dataProvider.GetQuoteAsync(Symbol.Trim()).ConfigureAwait(true);
+            var history = await _dataProvider
+                .GetHistoryAsync(instrument.Symbol, DateTimeOffset.MinValue, DateTimeOffset.MaxValue)
+                .ConfigureAwait(true);
 
-            if (quote is null)
+            if (history.Count < 2)
             {
-                QuoteText = "kein Kurs";
-                StatusText = $"Für {Symbol} liegt kein Kurs vor.";
+                StatusText = $"Für {instrument.Symbol} liegt zu wenig Historie vor.";
                 return;
             }
 
-            ShowQuote(quote);
-            _session.OnQuote(quote, DateTimeOffset.UtcNow);
-            UpdatePortfolioTexts();
-            StatusText = $"Kurs aktualisiert ({_dataProvider.License.StatusText}).";
+            Stop();
+
+            _clock = new SimulationClock(instrument.Symbol, history);
+            _session = new TradingSession(StartingCash, _feeModel);
+
+            Blotter.Clear();
+            OpenOrders.Clear();
+            ChartMarkers = [];
+            IsSessionRunning = true;
+
+            RefreshFromClock();
+            StatusText = $"Sitzung läuft: {instrument.Symbol}, {history.Count} Handelstage.";
+            Log.Info("Sitzung gestartet: {Symbol} mit {Count} Kerzen.", instrument.Symbol, history.Count);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Kursabruf für {Symbol} fehlgeschlagen.", Symbol);
-            StatusText = "Kursabruf fehlgeschlagen — Details im Log.";
+            Log.Error(ex, "Sitzungsstart für {Symbol} fehlgeschlagen.", instrument.Symbol);
+            StatusText = "Sitzung konnte nicht gestartet werden — Details im Log.";
         }
         finally
         {
@@ -126,73 +217,176 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private bool CanRefresh => !IsBusy && !string.IsNullOrWhiteSpace(Symbol);
-
-    private async Task TradeAsync(OrderSide side)
+    [RelayCommand(CanExecute = nameof(CanStep))]
+    private void TogglePlay()
     {
-        IsBusy = true;
+        Speed = Speed == SimulationSpeed.Paused ? _pendingSpeed : SimulationSpeed.Paused;
+    }
 
+    [RelayCommand(CanExecute = nameof(CanStep))]
+    private void Step()
+    {
+        if (_clock is null)
+        {
+            return;
+        }
+
+        var step = _clock.Advance();
+
+        if (step is null)
+        {
+            FinishSession();
+            return;
+        }
+
+        var fills = _session.OnQuote(step.Quote, step.Candle.OpenTime);
+
+        foreach (var fill in fills)
+        {
+            Blotter.Insert(0, FormatFill(fill));
+        }
+
+        if (fills.Count > 0)
+        {
+            RefreshMarkers();
+            RefreshOpenOrders();
+        }
+
+        RefreshFromClock();
+    }
+
+    partial void OnSpeedChanged(SimulationSpeed value)
+    {
+        OnPropertyChanged(nameof(PlayButtonText));
+
+        if (value.Interval() is { } interval && IsSessionRunning)
+        {
+            _timer.Interval = interval;
+            _timer.Start();
+            Log.Debug("Ablaufgeschwindigkeit {Speed} ({Interval} ms).", value, interval.TotalMilliseconds);
+        }
+        else
+        {
+            _timer.Stop();
+        }
+    }
+
+    private void FinishSession()
+    {
+        Stop();
+        IsSessionRunning = false;
+
+        var report = _session.Report();
+        StatusText = string.Create(
+            CultureInfo.CurrentCulture,
+            $"Sitzung beendet: {report.TotalReturnPercent:+0.00;-0.00;0.00} % Ergebnis, " +
+            $"{report.TradeCount} Rundläufe, Trefferquote {report.WinRatePercent:N0} %, " +
+            $"Gebührenlast {report.FeeDragPercent:N1} % des Startkapitals.");
+
+        Log.Info("Sitzung beendet: {Report}", report);
+    }
+
+    private void Stop()
+    {
+        _timer.Stop();
+        Speed = SimulationSpeed.Paused;
+    }
+
+    private async Task LoadInstrumentsAsync()
+    {
         try
         {
-            var symbol = Symbol.Trim();
-            var quote = await _dataProvider.GetQuoteAsync(symbol).ConfigureAwait(true);
+            var instruments = await _dataProvider.SearchAsync(string.Empty).ConfigureAwait(true);
+            var limit = _features.InstrumentLimit;
 
-            if (quote is null)
-            {
-                StatusText = $"Für {symbol} liegt kein Kurs vor — Order nicht ausgeführt.";
-                return;
-            }
-
-            ShowQuote(quote);
-
-            var now = DateTimeOffset.UtcNow;
-            var order = Order.Market(symbol, side, Quantity, now);
-            var result = _session.Submit(order, quote, now);
-
-            // Async-Continuation: VM-Properties nur auf dem UI-Thread anfassen.
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (result.Fill is { } fill)
+                Instruments.Clear();
+
+                foreach (var instrument in instruments.Take(limit))
                 {
-                    Blotter.Insert(0, FormatFill(fill));
-                    StatusText = $"{(side == OrderSide.Buy ? "Kauf" : "Verkauf")} ausgeführt.";
-                }
-                else
-                {
-                    StatusText = result.Order.RejectReason ?? "Order nicht ausgeführt.";
+                    Instruments.Add(instrument);
                 }
 
-                UpdatePortfolioTexts();
+                SelectedInstrument = Instruments.FirstOrDefault();
+
+                if (Instruments.Count == 0)
+                {
+                    StatusText = "Keine Kursdaten gefunden. Siehe Data/README.md.";
+                }
+                else if (instruments.Count > limit)
+                {
+                    StatusText = $"{limit} von {instruments.Count} Instrumenten — {_features.UpgradeHint(Feature.UnlimitedInstruments)}";
+                }
             });
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Order fehlgeschlagen: {Side} {Qty} {Symbol}", side, Quantity, Symbol);
-            StatusText = "Order fehlgeschlagen — Details im Log.";
-        }
-        finally
-        {
-            IsBusy = false;
+            Log.Error(ex, "Instrumentenliste konnte nicht geladen werden.");
+            StatusText = "Instrumentenliste konnte nicht geladen werden — Details im Log.";
         }
     }
 
-    private void ShowQuote(Quote quote) =>
+    private void RefreshFromClock()
+    {
+        if (_clock is null)
+        {
+            return;
+        }
+
+        ChartCandles = _clock.Visible;
+        Progress = _clock.Total <= 1 ? 1d : (double)_clock.Index / (_clock.Total - 1);
+
+        var quote = _clock.CurrentQuote;
         QuoteText = string.Create(
             CultureInfo.CurrentCulture,
             $"{quote.Symbol}  {quote.Last:N2}  (Geld {quote.Bid:N2} / Brief {quote.Ask:N2})");
+        DateText = _clock.Current.OpenTime.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
 
-    private static string FormatFill(Fill fill) =>
-        string.Create(
-            CultureInfo.CurrentCulture,
-            $"{fill.ExecutedAt.LocalDateTime:HH:mm:ss}  {(fill.Side == OrderSide.Buy ? "Kauf" : "Verkauf")}  {fill.Quantity:N0} {fill.Symbol} @ {fill.Price:N2}  (Gebühr {fill.Fee:N2})");
+        UpdatePortfolioTexts();
+    }
+
+    private void RefreshMarkers() =>
+        ChartMarkers = _session.Fills
+            .Select(f => new ChartMarker(f.ExecutedAt, f.Price, f.Side))
+            .ToList();
+
+    private void RefreshOpenOrders()
+    {
+        // Clear+Add ist hier richtig: die Liste ändert sich nur durch Nutzeraktionen
+        // bzw. Ausführungen, nicht in einer schnellen Schleife.
+        OpenOrders.Clear();
+
+        foreach (var order in _session.OpenOrders)
+        {
+            OpenOrders.Add(OpenOrderRow.From(order));
+        }
+
+        OnPropertyChanged(nameof(HasOpenOrders));
+    }
 
     private void UpdatePortfolioTexts()
     {
         var portfolio = _session.Portfolio;
+        var currency = portfolio.Currency;
 
-        EquityText = string.Create(CultureInfo.CurrentCulture, $"{_session.Equity:N2} {portfolio.Currency}");
-        CashText = string.Create(CultureInfo.CurrentCulture, $"{portfolio.Cash:N2} {portfolio.Currency}");
-        FeeText = string.Create(CultureInfo.CurrentCulture, $"{portfolio.TotalFees:N2} {portfolio.Currency}");
+        EquityText = string.Create(CultureInfo.CurrentCulture, $"{_session.Equity:N2} {currency}");
+        CashText = string.Create(CultureInfo.CurrentCulture, $"{portfolio.Cash:N2} {currency}");
+        FeeText = string.Create(CultureInfo.CurrentCulture, $"{portfolio.TotalFees:N2} {currency}");
         ReturnText = string.Create(CultureInfo.CurrentCulture, $"{_session.TotalReturnPercent:+0.00;-0.00;0.00} %");
+
+        var symbol = _clock?.Symbol;
+        var quantity = symbol is null ? 0m : portfolio.QuantityOf(symbol);
+
+        PositionText = quantity == 0m
+            ? "keine Position"
+            : string.Create(CultureInfo.CurrentCulture, $"{quantity:N0} Stück @ {portfolio.GetPosition(symbol!)!.AveragePrice:N2}");
     }
+
+    private static string FormatFill(Fill fill) =>
+        string.Create(
+            CultureInfo.CurrentCulture,
+            $"{fill.ExecutedAt:dd.MM.yy}  {(fill.Side == OrderSide.Buy ? "Kauf" : "Verkauf")}  {fill.Quantity:N0} {fill.Symbol} @ {fill.Price:N2}  (Gebühr {fill.Fee:N2})");
+
+    public void Dispose() => _timer.Stop();
 }
