@@ -2,9 +2,10 @@
 
 ## Grundlagen
 
-- **Was:** Börsensimulator mit echten Marktdaten und virtuellem Geld. Zwei Vertriebswege:
-  Steam (kostenlose Demo + Vollversion) und Direktverkauf (kostenlose Fassung + Pro mit
-  eigenem Lizenzschlüssel).
+- **Was:** Börsensimulator mit echten Marktdaten und virtuellem Geld. Zwei Vertriebswege
+  vorgesehen: Direktverkauf (kostenlose Fassung + Pro mit eigenem Lizenzschlüssel) und
+  später Steam (kostenlose Demo + Vollversion). **Der Direktverkauf hat Vorrang** —
+  Steam ist zurückgestellt, siehe Roadmap.
 - **Stack:** C# / .NET 10 / Avalonia 12.1.1, CommunityToolkit.Mvvm, Microsoft.Extensions.DependencyInjection,
   NLog (mit Secret-Masking), xunit.v3 + FluentAssertions 7.x
 - **Struktur:** Flach (kein `src/`), `.slnx`, Central Package Management, `Directory.Build.props`,
@@ -66,31 +67,50 @@ Noch nicht gebaut: siehe Roadmap.
 
 ## Roadmap
 
+**Steam ist zurückgestellt** (Stand 2026-08-27). Der Fokus liegt auf dem
+Direktverkauf: eine Fassung, die für sich steht und keine Plattform braucht.
+Alles, was allein wegen Steam auf der Liste stand, ist entsprechend nach hinten
+gewandert — der Punkt selbst bleibt mit allen offenen Fragen erhalten, damit er
+beim Wiederaufgreifen vollständig ist.
+
 Kurzfristig:
 
 1. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
    `Portfolio` kann das bereits, `SimulationClock` läuft noch auf einem Symbol.
    **Hängt daran:** die Equity-Kurve über mehrere Werte, und ob der Bericht dann
    pro Instrument oder für das Gesamtdepot aufschlüsselt.
-2. **Achievements-fähige Meilensteine** vorbereiten (erste Sitzung beendet, ohne
-   Totalverlust überstanden, 20 Rundläufe) — Aufhänger für die Steam-Integration.
-   Der Abschlussbericht ist der natürliche Ort, sie auszulösen.
-3. **Bericht exportieren.** Der Bericht rendert sich bereits selbst in eine PNG
+2. **Bericht exportieren.** Der Bericht rendert sich bereits selbst in eine PNG
    (`--report-preview`); dieselbe Mechanik als „Bericht speichern"-Knopf im Fenster
    wäre wenig Aufwand und macht Sitzungen vergleichbar.
 
 Mittelfristig:
 
-4. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
+3. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
    Zugang; damit verbreitet Parkett keine Daten weiter und braucht keine eigene Lizenz.
    Das ist der Weg zu „live" ohne fünfstellige Monatskosten.
-5. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
+4. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
    Data Usage Declaration. Erst freischalten, wenn `AgreementReference` gesetzt ist —
    `MarketDataLicense.IsUsableInPaidBuild` erzwingt das bereits.
-6. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
-   Entitlement. Demo als eigene App-ID. **Früh testen, ob das Steam-Overlay mit Avalonia
-   funktioniert** — Avalonia rendert über Skia, das Overlay hängt an DirectX/OpenGL-Hooks.
-7. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
+5. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
+6. **Meilensteine** (erste Sitzung beendet, ohne Totalverlust überstanden, 20 Rundläufe).
+   Der Abschlussbericht ist der natürliche Ort, sie auszulösen. Sie waren ursprünglich
+   nur als Steam-Vorbereitung gedacht, haben aber auch im Direktverkauf Wert — deshalb
+   bleiben sie auf der Liste, nur ohne Eile.
+
+Später — Steam:
+
+7. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
+   Entitlement. Demo als eigene App-ID. Drei Dinge sind vorher zu klären:
+   - **Overlay-Risiko zuerst prüfen.** Avalonia rendert über Skia, das Steam-Overlay
+     hängt an DirectX/OpenGL-Hooks. Funktioniert das nicht, ändert es die Machbarkeit
+     des ganzen Wegs — deshalb ein Wegwerf-Prototyp *vor* jeder Integrationsarbeit.
+   - **Welche Kursdaten liegen bei?** Auf Steam muss ausgeliefert werden, und das
+     braucht einen Anbieter, der die Weiterverbreitung schriftlich erlaubt (siehe
+     Referenz). Die lizenzfreie Alternative sind erfundene Verläufe wie `DEMO.csv` —
+     ein Generator für Szenarien (Crash, Seitwärtsmarkt, Blase) wäre überschaubar
+     und didaktisch sogar im Vorteil, weil sich Lehrfälle gezielt bauen lassen.
+   - **Der Lizenzschlüssel-Mechanismus bleibt dort ungenutzt** — auf Steam ist der
+     App-Besitz die Lizenz. `FeatureGate` deckt beides bereits ab.
 
 ## Referenz
 
@@ -119,11 +139,9 @@ dass Parkett sie mitliefert: Schlüssel und Vertrag gehören dem Nutzer, Parkett
 verbreitet nichts weiter. `.gitignore` nimmt `Parkett/Data/*.csv` deshalb aus — ein
 Repository ist eine Weiterverbreitung. Nur das erfundene `DEMO.csv` ist eingecheckt.
 
-**Offen für den Verkauf:** was der Steam-Version beiliegt. Erfundene Kursverläufe
-(wie `DEMO.csv`) sind uneingeschränkt auslieferbar und für einen Lernsimulator sogar
-didaktisch brauchbar — man kann Crash, Seitwärtsmarkt und Blase gezielt bauen, statt
-zu hoffen, dass die Historie sie hergibt. Echte Instrumente brauchen dagegen einen
-Anbieter, der die Weiterverbreitung schriftlich erlaubt.
+**Für den Direktverkauf ist die Frage damit erledigt** — dort liegt nur `DEMO.csv` bei,
+den Rest holt sich der Nutzer. Offen bleibt sie nur für eine auszuliefernde Fassung;
+das ist mit Steam zurückgestellt und steht als Teilfrage bei Roadmap-Punkt 7.
 
 ### Warum Gebühren ein eigenes Konzept sind
 
