@@ -7,6 +7,7 @@ using NLog;
 using Parkett.Charting;
 using Parkett.Domain;
 using Parkett.Licensing;
+using Parkett.Persistence;
 using Parkett.Services;
 using Parkett.Simulation;
 
@@ -27,7 +28,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly IMarketDataProvider _dataProvider;
     private readonly IFeeModel _feeModel;
     private readonly FeatureGate _features;
+    private readonly SettingsService _settingsService;
+    private readonly SessionStore _sessionStore;
     private readonly DispatcherTimer _timer;
+
+    private AppSettings _settings = AppSettings.Default;
 
     private TradingSession _session;
     private SimulationClock? _clock;
@@ -95,12 +100,28 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private double _progress;
 
-    public MainWindowViewModel(IMarketDataProvider dataProvider, IFeeModel feeModel, FeatureGate features)
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ResumeSessionCommand))]
+    private bool _hasSavedSession;
+
+    public MainWindowViewModel(
+        IMarketDataProvider dataProvider,
+        IFeeModel feeModel,
+        FeatureGate features,
+        SettingsService settingsService,
+        SessionStore sessionStore)
     {
         _dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
         _feeModel = feeModel ?? throw new ArgumentNullException(nameof(feeModel));
         _features = features ?? throw new ArgumentNullException(nameof(features));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _sessionStore = sessionStore ?? throw new ArgumentNullException(nameof(sessionStore));
         _session = new TradingSession(StartingCash, feeModel);
+
+        _settings = _settingsService.Load();
+        _pendingSpeed = _settings.PreferredSpeed;
+        Quantity = _settings.DefaultQuantity;
+        HasSavedSession = _sessionStore.HasSavedSession;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _timer.Tick += (_, _) => Step();
@@ -168,6 +189,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     private bool CanStart => !IsBusy && SelectedInstrument is not null;
 
+    private bool CanResume => !IsBusy && HasSavedSession;
+
     private bool CanStep => !IsBusy && IsSessionRunning;
 
     [RelayCommand(CanExecute = nameof(CanStart))]
@@ -214,6 +237,99 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>Setzt die zuletzt unterbrochene Sitzung an derselben Kerze fort.</summary>
+    [RelayCommand(CanExecute = nameof(CanResume))]
+    private async Task ResumeSessionAsync()
+    {
+        var snapshot = _sessionStore.Load();
+
+        if (snapshot is null)
+        {
+            HasSavedSession = false;
+            StatusText = "Kein fortsetzbarer Stand vorhanden.";
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var history = await _dataProvider
+                .GetHistoryAsync(snapshot.Symbol, DateTimeOffset.MinValue, DateTimeOffset.MaxValue)
+                .ConfigureAwait(true);
+
+            if (history.Count < 2 || snapshot.CandleIndex >= history.Count)
+            {
+                // Historie hat sich seit dem Speichern geändert — lieber ehrlich abbrechen
+                // als an der falschen Kerze weiterzuspielen.
+                StatusText = $"Der gespeicherte Stand passt nicht mehr zur Historie von {snapshot.Symbol}.";
+                _sessionStore.Clear();
+                HasSavedSession = false;
+                return;
+            }
+
+            Stop();
+
+            _clock = new SimulationClock(snapshot.Symbol, history, snapshot.CandleIndex);
+            _session = SessionSnapshotMapper.ToSession(snapshot, _feeModel);
+
+            Blotter.Clear();
+
+            foreach (var fill in _session.Fills.OrderByDescending(f => f.ExecutedAt))
+            {
+                Blotter.Add(FormatFill(fill));
+            }
+
+            OpenOrders.Clear();
+            OnPropertyChanged(nameof(HasOpenOrders));
+            IsSessionRunning = true;
+
+            RefreshMarkers();
+            RefreshFromClock();
+
+            SelectedInstrument = Instruments.FirstOrDefault(i =>
+                string.Equals(i.Symbol, snapshot.Symbol, StringComparison.OrdinalIgnoreCase));
+
+            StatusText = $"Sitzung fortgesetzt: {snapshot.Symbol} ab dem {_clock.Current.OpenTime:dd.MM.yyyy}.";
+            Log.Info("Sitzung fortgesetzt: {Symbol} bei Index {Index}.", snapshot.Symbol, snapshot.CandleIndex);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Sitzung konnte nicht fortgesetzt werden.");
+            StatusText = "Sitzung konnte nicht fortgesetzt werden — Details im Log.";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Vom Exit-Hook gerufen: Einstellungen und laufende Sitzung sichern. Beendete Sitzungen
+    /// werden verworfen, sonst bietet die App beim nächsten Start ein totes Fortsetzen an.
+    /// </summary>
+    public void PersistOnExit()
+    {
+        _settings = _settings with
+        {
+            LastSymbol = SelectedInstrument?.Symbol ?? _settings.LastSymbol,
+            PreferredSpeed = _pendingSpeed,
+            DefaultQuantity = Quantity,
+        };
+
+        _settingsService.Save(_settings);
+
+        if (IsSessionRunning && _clock is not null)
+        {
+            _sessionStore.Save(SessionSnapshotMapper.ToSnapshot(
+                _session, _clock.Symbol, _clock.Index, DateTimeOffset.UtcNow));
+        }
+        else
+        {
+            _sessionStore.Clear();
         }
     }
 
@@ -275,6 +391,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         Stop();
         IsSessionRunning = false;
+        _sessionStore.Clear();
+        HasSavedSession = false;
 
         var report = _session.Report();
         StatusText = string.Create(
@@ -308,7 +426,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IDisposable
                     Instruments.Add(instrument);
                 }
 
-                SelectedInstrument = Instruments.FirstOrDefault();
+                SelectedInstrument = Instruments.FirstOrDefault(i =>
+                                         string.Equals(i.Symbol, _settings.LastSymbol, StringComparison.OrdinalIgnoreCase))
+                                     ?? Instruments.FirstOrDefault();
 
                 if (Instruments.Count == 0)
                 {

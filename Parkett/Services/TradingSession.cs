@@ -29,6 +29,33 @@ public sealed class TradingSession
         Log.Info("Handelssitzung eröffnet: {Cash} {Currency}", startingCash, currency);
     }
 
+    /// <summary>
+    /// Stellt eine gespeicherte Sitzung wieder her. Die Equity-Kurve wird bewusst NICHT
+    /// rekonstruiert — sie hinge von Kursen ab, die zum Speicherzeitpunkt galten. Der
+    /// Verlauf startet neu, die Kennzahlen beziehen sich danach auf den fortgesetzten Teil.
+    /// </summary>
+    public static TradingSession Restore(
+        decimal startingCash,
+        IFeeModel feeModel,
+        Portfolio portfolio,
+        IEnumerable<Fill> fills)
+    {
+        ArgumentNullException.ThrowIfNull(portfolio);
+        ArgumentNullException.ThrowIfNull(fills);
+
+        var session = new TradingSession(startingCash, feeModel, portfolio.Currency)
+        {
+            Portfolio = portfolio,
+        };
+
+        session._fills.AddRange(fills);
+
+        Log.Info("Sitzung wiederhergestellt: {Cash} Kasse, {Positions} Positionen, {Fills} Ausführungen.",
+            portfolio.Cash, portfolio.Positions.Count, session._fills.Count);
+
+        return session;
+    }
+
     public Portfolio Portfolio { get; private set; }
 
     public decimal StartingCash { get; }

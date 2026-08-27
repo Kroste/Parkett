@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using Parkett.Domain;
 using Parkett.Licensing;
+using Parkett.Persistence;
 using Parkett.Services;
 using Parkett.ViewModels;
 using Parkett.Views;
@@ -47,9 +48,20 @@ public partial class App : Application
             _tray = new TrayController(this, window);
             _tray.Install();
 
+            // Zuverlässigster "App wird beendet"-Hook: hier den Sitzungsstand sichern.
             desktop.Exit += (_, _) =>
             {
-                Log.Info("Desktop-Lifetime beendet — Dienste werden freigegeben.");
+                Log.Info("Desktop-Lifetime beendet — Stand wird gesichert.");
+
+                try
+                {
+                    (window.DataContext as MainWindowViewModel)?.PersistOnExit();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Sichern beim Beenden fehlgeschlagen.");
+                }
+
                 _services?.Dispose();
                 LogManager.Shutdown();
             };
@@ -62,17 +74,27 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
 
+        var dataDirectory = SettingsService.DefaultDirectory;
+
         services.AddSingleton<UpdateService>();
         services.AddSingleton(new LicenseVerifier(LicensePublicKey));
+        services.AddSingleton<ISecretProtector>(_ => new SecretProtector(dataDirectory));
+        services.AddSingleton(sp => new SettingsService(dataDirectory, sp.GetRequiredService<ISecretProtector>()));
+        services.AddSingleton(_ => new SessionStore(dataDirectory));
 
         services.AddSingleton<IEditionProvider>(sp =>
         {
             // Steam-Builds setzen die Stufe fest (dort ist der App-Besitz die Lizenz).
             // Der Direktverkauf liest stattdessen den gespeicherten Schlüssel.
             var verifier = sp.GetRequiredService<LicenseVerifier>();
-            return verifier.IsConfigured
-                ? new LicenseKeyEditionProvider(verifier, LoadStoredLicenseKey(), DateTimeOffset.UtcNow)
-                : new FixedEditionProvider(Edition.Free, "Entwicklungsbuild");
+
+            if (!verifier.IsConfigured)
+            {
+                return new FixedEditionProvider(Edition.Free, "Entwicklungsbuild");
+            }
+
+            var settings = sp.GetRequiredService<SettingsService>().Load();
+            return new LicenseKeyEditionProvider(verifier, settings.LicenseKey, DateTimeOffset.UtcNow);
         });
 
         services.AddSingleton<FeatureGate>();
@@ -87,21 +109,4 @@ public partial class App : Application
         return services.BuildServiceProvider();
     }
 
-    private static string? LoadStoredLicenseKey()
-    {
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Parkett",
-            "license.key");
-
-        try
-        {
-            return File.Exists(path) ? File.ReadAllText(path) : null;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            Log.Warn(ex, "Lizenzdatei nicht lesbar: {Path}", path);
-            return null;
-        }
-    }
 }

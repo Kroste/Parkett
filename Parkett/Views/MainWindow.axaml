@@ -56,6 +56,10 @@
                         <Button Grid.Column="1" Classes="ghost" Margin="8,0,0,0"
                                 Content="Neue Sitzung"
                                 Command="{Binding StartSessionCommand}" />
+                        <Button Grid.Column="2" Classes="ghost" Margin="8,0,0,0"
+                                Content="Fortsetzen"
+                                IsVisible="{Binding HasSavedSession}"
+                                Command="{Binding ResumeSessionCommand}" />
 
                         <Button Grid.Column="4" Classes="accent"
                                 Content="{Binding PlayButtonText}"
