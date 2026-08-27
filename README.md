@@ -100,7 +100,11 @@ Der Lizenzschlüssel der Pro-Version liegt unter:
 
 ## Logs & Fehlersuche
 
-Logdateien liegen im Unterordner `logs/` neben der Anwendung (Tagesarchiv, 14 Tage).
+Logdateien liegen im Nutzerprofil (Tagesarchiv, 14 Tage):
+
+- Windows: `%APPDATA%\Parkett\logs\`
+- Linux: `~/.config/Parkett/logs/`
+
 Bei einem Problem bitte ein Issue mit der aktuellen Logdatei eröffnen — Passwörter,
 Tokens und Lizenzschlüssel werden automatisch maskiert.
 

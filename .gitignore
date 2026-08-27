@@ -4,5 +4,8 @@ publish/
 *.user
 .vs/
 .idea/
+# Laufzeit-Ausgaben, die beim lokalen Start bzw. Testlauf entstehen
+logs/
+TestResults/
 # Lokaler NuGet-Offline-Feed (Arbeitslaptop) — nie einchecken
 NuGet-Local/
