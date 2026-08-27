@@ -8,8 +8,18 @@ on:
 permissions:
   contents: write
 
-# Muster aus Amtsschimmel (bewährt): native Builds pro OS mit Tests,
-# Linux zusätzlich als AppImage, Release-Job sammelt die Artefakte ein.
+# Native Builds pro OS mit Tests, Linux zusätzlich als AppImage.
+#
+# Jeder Job hängt seine Pakete DIREKT ans Release, statt sie über
+# upload-artifact/download-artifact zu reichen. Grund: der Umweg zählt voll auf
+# die kontoweite Artefakt-Quota, und die war beim ersten Release-Versuch (v0.3.0)
+# von einem anderen Repo belegt — "Artifact storage quota has been hit", der
+# Windows-Build war fertig und scheiterte trotzdem beim Hochladen. Ohne den
+# Umweg gibt es nichts, was volllaufen kann, und ~150 MB werden nicht zweimal
+# durchs Netz bewegt.
+#
+# Die Jobs laufen deshalb nacheinander: zwei parallele Jobs, die dasselbe
+# Release anlegen wollen, wären ein Rennen um dessen Erstellung.
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -49,13 +59,16 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path publish/win-x64/* -DestinationPath "Parkett-${{ steps.ver.outputs.v }}-win-x64.zip"
 
-      - uses: actions/upload-artifact@v7
+      - name: Ans Release anhängen
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v3
         with:
-          name: windows
-          path: Parkett-*-win-x64.zip
-          retention-days: 7
+          files: Parkett-*-win-x64.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
 
   build-linux:
+    needs: build-windows
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -94,27 +107,12 @@ jobs:
       - name: AppImage bauen
         run: bash packaging/linux/build-appimage.sh "${{ steps.ver.outputs.v }}" publish/linux-x64
 
-      - uses: actions/upload-artifact@v7
-        with:
-          name: linux
-          path: |
-            Parkett-*-linux-x64.tar.gz
-            Parkett-*-x86_64.AppImage
-          retention-days: 7
-
-  release:
-    needs: [build-windows, build-linux]
-    runs-on: ubuntu-latest
-    # Beim manuellen Start (workflow_dispatch ohne Tag) überspringen.
-    if: github.ref_type == 'tag'
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          path: dist
-
-      - name: GitHub-Release anlegen/aktualisieren
+      - name: Ans Release anhängen
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/**/*
+          files: |
+            Parkett-*-linux-x64.tar.gz
+            Parkett-*-x86_64.AppImage
           generate_release_notes: true
           fail_on_unmatched_files: true

@@ -11,8 +11,10 @@ APPDIR="AppDir"
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin"
 cp -r "$PUBLISH_DIR"/* "$APPDIR/usr/bin/"
-cp packaging/linux/Parkett.desktop "$APPDIR/"
-cp Parkett/Assets/Parkett.png "$APPDIR/"
+# Kleingeschrieben, weil die Dateien so heißen — auf Linux ist das nicht egal.
+# Unter Windows lief dasselbe Skript jahrelang mit 'Parkett.desktop' durch.
+cp packaging/linux/parkett.desktop "$APPDIR/"
+cp Parkett/Assets/parkett.png "$APPDIR/"
 cp packaging/linux/AppRun "$APPDIR/AppRun"
 chmod +x "$APPDIR/AppRun" "$APPDIR/usr/bin/Parkett"
 
