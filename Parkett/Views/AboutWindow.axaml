@@ -21,9 +21,20 @@
 
             <Rectangle Classes="divider-h" />
 
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button x:Name="UpdateButton" Classes="accent" Content="{loc:Tr About_CheckUpdates}" />
-                <TextBlock x:Name="UpdateResult" VerticalAlignment="Center" Classes="secondary" />
+            <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button x:Name="UpdateButton" Classes="accent" Content="{loc:Tr About_CheckUpdates}" />
+                    <TextBlock x:Name="UpdateResult" VerticalAlignment="Center" Classes="secondary" />
+                </StackPanel>
+
+                <!-- Erscheint erst, wenn die Prüfung ein passendes Asset gefunden hat.
+                     Ohne diesen Knopf wäre der Dialog eine reine Benachrichtigung — der
+                     Kroste-Standard verlangt echtes Self-Update. -->
+                <Button x:Name="InstallButton" Classes="accent"
+                        Content="{loc:Tr Update_Install}" IsVisible="False"
+                        HorizontalAlignment="Left" />
+                <ProgressBar x:Name="UpdateProgress" IsVisible="False"
+                             Minimum="0" Maximum="1" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -31,8 +42,8 @@
                 <Button x:Name="BmcButton" Content="☕ Buy me a coffee" />
             </StackPanel>
 
-            <TextBlock Text="MIT-Lizenz · © 2026 Lars Krügel (Kroste)"
-                       Foreground="#6B7280" FontSize="11" />
+            <TextBlock Text="{loc:Tr About_License}"
+                       Classes="muted" FontSize="11" />
         </StackPanel>
     </DockPanel>
 </views:ChromeWindow>

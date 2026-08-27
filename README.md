@@ -32,7 +32,9 @@ einschließlich der Gebühren, die im Echtbetrieb den Unterschied machen.
   an derselben Kerze fortgesetzt.
 - **Zweisprachig:** Deutsch und Englisch, live umschaltbar ohne Neustart.
 - **Transparente Datenquelle:** Die Statuszeile nennt immer Quelle und Verzögerung.
-- 🔄 **Update-Check:** Prüft GitHub-Releases (proxy-fähig) und installiert Updates auf Wunsch selbst.
+- 🔄 **Selbstaktualisierung:** Parkett prüft beim Start (und jederzeit über *Über Parkett*),
+  ob eine neuere Fassung vorliegt, lädt sie auf Wunsch herunter, tauscht sich aus und
+  startet neu. Ohne Zustimmung passiert nichts.
 
 ## Installation
 

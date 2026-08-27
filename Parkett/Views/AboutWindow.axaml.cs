@@ -1,14 +1,10 @@
-// Kroste-Standard-Codebehind für das AboutWindow. Zusammen mit
-// AboutWindow.axaml in Views/ ablegen. Beim Kopieren "Parkett" durch den
-// echten Projektnamen ersetzen. Der UpdateService gehört zum Auto-Update-Muster
-// (siehe references/autoupdate.md); GitHub-URL ans eigene Repo anpassen.
-//
 // WICHTIG (Avalonia 12): KEIN manuelles InitializeComponent() definieren —
-// der Name-Generator emittiert es zusammen mit den x:Name-Feldern selbst.
+// der NameGenerator emittiert es zusammen mit den x:Name-Feldern selbst.
 // Sonst gewinnt die manuelle Version per Overload-Auflösung und die Felder
 // bleiben null (siehe references/avalonia12.md).
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using NLog;
 using Parkett.Localization;
 using Parkett.Services;
@@ -22,6 +18,7 @@ public partial class AboutWindow : ChromeWindow
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly UpdateService? _updateService;
+    private string? _assetUrl;
 
     // Parameterloser Ctor für den XAML-Designer.
     public AboutWindow()
@@ -34,6 +31,7 @@ public partial class AboutWindow : ChromeWindow
         _updateService = updateService;
         VersionText.Text = L.F("About_Version", updateService.CurrentVersion);
         UpdateButton.Click += OnCheckUpdate;
+        InstallButton.Click += OnInstallUpdate;
         GithubButton.Click += (_, _) => Launch(GithubUrl);
         BmcButton.Click += (_, _) => Launch(BmcUrl);
     }
@@ -51,6 +49,11 @@ public partial class AboutWindow : ChromeWindow
                 : result.LatestVersion is null
                     ? L.T("About_NoAccess")
                     : L.T("About_UpToDate");
+
+            // Ohne Asset für diese Plattform gibt es nichts zu installieren —
+            // dann bleibt es bei der Meldung.
+            _assetUrl = result.UpdateAvailable ? result.AssetUrl : null;
+            InstallButton.IsVisible = _assetUrl is not null;
         }
         catch (Exception ex)
         {
@@ -61,6 +64,39 @@ public partial class AboutWindow : ChromeWindow
         {
             UpdateButton.IsEnabled = true;
         }
+    }
+
+    private async void OnInstallUpdate(object? sender, RoutedEventArgs e)
+    {
+        if (_updateService is null || _assetUrl is null) return;
+
+        InstallButton.IsEnabled = false;
+        UpdateButton.IsEnabled = false;
+        UpdateProgress.IsVisible = true;
+
+        // Der Fortschritt kommt vom Download-Thread — ohne Dispatcher sähen die
+        // Bindings die Änderung nicht (Kroste-Standard: VM/UI-State auf dem UI-Thread).
+        var progress = new Progress<double>(value => Dispatcher.UIThread.Post(() =>
+        {
+            UpdateProgress.Value = value;
+            UpdateResult.Text = L.F("Update_Downloading", (int)(value * 100));
+        }));
+
+        var started = await _updateService.DownloadAndApplyAsync(_assetUrl, progress);
+
+        if (!started)
+        {
+            UpdateResult.Text = L.T("Update_Failed");
+            UpdateProgress.IsVisible = false;
+            InstallButton.IsEnabled = true;
+            UpdateButton.IsEnabled = true;
+            return;
+        }
+
+        // PFLICHT: Das Installer-Skript wartet auf das Prozessende. Beenden wir uns
+        // nicht selbst, wartet es ewig und die Anzeige bleibt bei 100 % stehen.
+        UpdateResult.Text = L.T("Update_Restarting");
+        UpdateService.TerminateForUpdate();
     }
 
     private void Launch(string url)

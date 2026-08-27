@@ -32,7 +32,11 @@ Fertig:
 - **Lizenzierung** (`Licensing/`): `Edition`/`Feature`/`FeatureGate` plus offline prüfbare
   Lizenzschlüssel (ECDSA P-256, kein Aktivierungsserver).
 - **App-Gerüst**: DI, NLog mit Masking, GlobalExceptionHandler, Tray, ChromeWindow,
-  AboutWindow, UpdateService mit echtem Self-Update, App-Icon, CI/Release-Workflows.
+  AboutWindow, App-Icon, CI/Release-Workflows.
+- **Self-Update**: `UpdateService` lädt das Release-Asset und startet das
+  Austausch-Skript. Zwei Einstiege — der Knopf im Über-Fenster und ein nicht
+  blockierender Check beim Start, der bei einem Fund `UpdatePromptWindow` zeigt.
+  Beide beenden die App nach dem Start des Installers.
 - **Zeitsteuerung** (`Simulation/`): `SimulationClock` deckt die Historie Kerze für Kerze
   auf, mit Vorlauf, Play/Pause/Schritt und vier Tempostufen.
 - **Chart** (`Charting/` + `Controls/CandlestickChart.cs`): Kerzen, Preisraster auf runden
@@ -134,6 +138,13 @@ die Lizenz.
   die beim App-Start galt.** Als Property halten, dann greift der Live-Wechsel.
 - **`AffectsRender<T>` nicht vergessen**, wenn ein selbstgezeichnetes Control neue
   StyledProperties bekommt — sonst bleibt der Chart nach einem Datenwechsel stehen.
+- **Ein Self-Update, das die App nicht selbst beendet, hängt bei 100 %.** Das
+  Austausch-Skript wartet auf das Prozessende (`Wait-Process` bzw. `kill -0`).
+  `DownloadAndApplyAsync` gibt nur `true` zurück — **jeder** Aufrufer muss danach
+  `UpdateService.TerminateForUpdate()` rufen. Hier waren Download und Beenden zwei
+  Releases lang fertig implementiert, aber von keiner Stelle aufgerufen: das
+  Über-Fenster prüfte nur und zeigte „Version X verfügbar". Wer den Update-Pfad
+  anfasst, prüft mit `grep -rn DownloadAndApplyAsync`, dass es noch einen Aufrufer gibt.
 
 ### Sprachwechsel: was live geht und was nicht
 
@@ -173,3 +184,4 @@ Emoji-Font ebenfalls. Unter Linux mit Noto Color Emoji sieht es richtig aus. Wen
 | `Charting/ChartViewport` | Komplette Chart-Skalierung, ohne Avalonia-Bezug und testbar |
 | `Controls/CandlestickChart` | Zeichnet nur; Farben kommen als StyledProperty von außen |
 | `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung, stürzt nie an Nutzerdaten |
+| `Services/UpdateService` | Release-Check, Download, plattformeigenes Austausch-Skript |

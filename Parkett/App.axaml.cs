@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,6 +62,8 @@ public partial class App : Application
             _tray = new TrayController(this, window);
             _tray.Install();
 
+            window.Opened += OnMainWindowOpened;
+
             // Zuverlässigster "App wird beendet"-Hook: hier den Sitzungsstand sichern.
             desktop.Exit += (_, _) =>
             {
@@ -81,6 +84,49 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Update-Check beim Start — im Hintergrund, damit ein hängender Proxy nie das
+    /// Hauptfenster aufhält, und nur mit Zustimmung des Nutzers vor der Installation.
+    /// </summary>
+    private async void OnMainWindowOpened(object? sender, EventArgs e)
+    {
+        if (sender is not Window window)
+        {
+            return;
+        }
+
+        // Einmal pro Start reicht — sonst poppt der Dialog nach jedem Minimieren erneut auf.
+        window.Opened -= OnMainWindowOpened;
+
+        var updateService = _services?.GetService<UpdateService>();
+
+        if (updateService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var result = await updateService.CheckForUpdateAsync().ConfigureAwait(true);
+
+            // Ohne Asset für diese Plattform gäbe es nichts zu installieren.
+            if (!result.UpdateAvailable || result.AssetUrl is null || result.LatestVersion is null)
+            {
+                return;
+            }
+
+            Log.Info("Update {Version} verfügbar — Nutzer wird gefragt.", result.LatestVersion);
+
+            var prompt = new UpdatePromptWindow(updateService, result.LatestVersion, result.AssetUrl);
+            await prompt.ShowDialog(window);
+        }
+        catch (Exception ex)
+        {
+            // Ein fehlgeschlagener Check darf die App nie stören.
+            Log.Warn(ex, "Update-Check beim Start fehlgeschlagen.");
+        }
     }
 
     private static ServiceProvider BuildServices()
