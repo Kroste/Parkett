@@ -52,6 +52,13 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Werkzeug-Modus: Bericht rendern und beenden, ohne Hauptfenster.
+            if (ReportPreview.IsRequested(desktop.Args ?? []))
+            {
+                ReportPreview.Run(desktop.Args ?? []);
+                return;
+            }
+
             var window = new MainWindow
             {
                 DataContext = _services.GetRequiredService<MainWindowViewModel>(),

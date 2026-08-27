@@ -10,6 +10,31 @@
   <data name="Window_About" xml:space="preserve"><value>About Parkett</value></data>
   <data name="Window_Settings" xml:space="preserve"><value>Parkett — Settings</value></data>
   <data name="Window_Update" xml:space="preserve"><value>Update available</value></data>
+  <data name="Window_Report" xml:space="preserve"><value>Session report</value></data>
+
+  <!-- ============ Abschlussbericht ============ -->
+  <data name="Report_Headline" xml:space="preserve"><value>Session finished</value></data>
+  <data name="Report_Subline" xml:space="preserve"><value>{0} · {1} trading days · {2} to {3}</value></data>
+  <data name="Report_FeeSection" xml:space="preserve"><value>WHAT THE FEES COST YOU</value></data>
+  <data name="Report_FeeDrag" xml:space="preserve"><value>Fee drag</value></data>
+  <data name="Report_FeeDragHint" xml:space="preserve"><value>Share of your starting capital that went to fees. Past roughly 10 % per year a strategy is hard to save by trading alone.</value></data>
+  <data name="Report_FeesPaid" xml:space="preserve"><value>Fees paid</value></data>
+  <data name="Report_ResultWithoutFees" xml:space="preserve"><value>Result without fees</value></data>
+  <data name="Report_CurveSection" xml:space="preserve"><value>PORTFOLIO VALUE OVER TIME</value></data>
+  <data name="Report_CurveHint" xml:space="preserve"><value>The dashed line is your starting capital. The circle marks the deepest point below a previous high.</value></data>
+  <data name="Report_MetricsSection" xml:space="preserve"><value>KEY FIGURES</value></data>
+  <data name="Report_StartEquity" xml:space="preserve"><value>Starting capital</value></data>
+  <data name="Report_EndEquity" xml:space="preserve"><value>Final value</value></data>
+  <data name="Report_TotalReturn" xml:space="preserve"><value>Total result</value></data>
+  <data name="Report_MaxDrawdown" xml:space="preserve"><value>Maximum drawdown</value></data>
+  <data name="Report_TradeCount" xml:space="preserve"><value>Round trips</value></data>
+  <data name="Report_WinRate" xml:space="preserve"><value>Hit rate</value></data>
+  <data name="Report_NoTrades" xml:space="preserve"><value>You did not close a single round trip — there is nothing to rate yet.</value></data>
+  <data name="Report_PartialHint" xml:space="preserve"><value>This session was resumed. The figures cover the resumed part only — the original starting capital was {0}.</value></data>
+  <data name="Report_VerdictGain" xml:space="preserve"><value>You ended above your starting capital. Check the fee drag anyway: it is the part you pay regardless of how the market moved.</value></data>
+  <data name="Report_VerdictFlat" xml:space="preserve"><value>You finished exactly where you started. With no closed round trips there is nothing to judge yet — but note that the fees would have applied either way.</value></data>
+  <data name="Report_VerdictLoss" xml:space="preserve"><value>You ended below your starting capital. Compare the loss with the fee drag — a part of it was never a market decision.</value></data>
+  <data name="Report_VerdictFeesAtePlus" xml:space="preserve"><value>Without fees this session would have been positive. The strategy worked; the trading frequency did not.</value></data>
 
   <!-- ============ Kopfbereich ============ -->
   <data name="Main_TradingDay" xml:space="preserve"><value>Trading day</value></data>

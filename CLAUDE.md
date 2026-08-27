@@ -53,6 +53,10 @@ Fertig:
 - **Einstellungen-Fenster**: Sprache, Gebührenmodell, Lizenzschlüssel.
 - **MainWindow**: Chart, Transportleiste, Depot-Kennzahlen, Order mit Limit und Stop,
   Buch der offenen Orders, Ausführungsliste, Statuszeile mit Datenquelle und Verzögerung.
+- **Abschlussbericht** (`Views/ReportWindow`): öffnet sich, wenn die Historie
+  durchgelaufen ist. Gebührenlast ganz oben, Equity-Kurve mit Startkapital-Linie und
+  Drawdown-Marker, Kennzahlen, und ein Urteil in Worten. Vorschau ohne Sitzung über
+  `Parkett.exe --report-preview <datei.png> [gewinn|verlust|gebuehren|leer]`.
 
 Noch nicht gebaut: siehe Roadmap.
 
@@ -62,13 +66,16 @@ Kurzfristig:
 
 1. **Datenbeschaffung.** Skript, das eine lizenzkonforme EOD-Historie nach `Data/` holt
    (siehe `Parkett/Data/README.md`). Ohne echte Instrumente bleibt es beim DEMO-Wert.
-2. **Abschlussbericht als Fenster.** Die Sitzung endet aktuell mit einer Statuszeile.
-   Ein eigener Bericht mit Equity-Kurve, Drawdown und Gebührenlast ist der Moment, in
-   dem der Simulator seine Lehre erteilt.
-3. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
+2. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
    `Portfolio` kann das bereits, `SimulationClock` läuft noch auf einem Symbol.
-4. **Achievements-fähige Meilensteine** vorbereiten (erste Sitzung beendet, ohne
+   **Hängt daran:** die Equity-Kurve über mehrere Werte, und ob der Bericht dann
+   pro Instrument oder für das Gesamtdepot aufschlüsselt.
+3. **Achievements-fähige Meilensteine** vorbereiten (erste Sitzung beendet, ohne
    Totalverlust überstanden, 20 Rundläufe) — Aufhänger für die Steam-Integration.
+   Der Abschlussbericht ist der natürliche Ort, sie auszulösen.
+4. **Bericht exportieren.** Der Bericht rendert sich bereits selbst in eine PNG
+   (`--report-preview`); dieselbe Mechanik als „Bericht speichern"-Knopf im Fenster
+   wäre wenig Aufwand und macht Sitzungen vergleichbar.
 
 Mittelfristig:
 
@@ -225,6 +232,28 @@ kein Fehlen des Fonts. Unter Linux mit Noto Color Emoji sieht es richtig aus. We
 | `Controls/CandlestickChart` | Zeichnet nur; Farben kommen als StyledProperty von außen |
 | `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung **nur bei kaputtem JSON**, stürzt nie an Nutzerdaten |
 | `Services/UpdateService` | Release-Check, Download, plattformeigenes Austausch-Skript |
+| `Charting/EquityViewport` | Skalierung der Equity-Kurve, ohne Avalonia-Bezug und testbar |
+| `ViewModels/ReportWindowViewModel` | Kennzahlen → Anzeigetexte und das Urteil in Worten |
+
+### Der Abschlussbericht sagt mehr als die Kennzahlen
+
+Drei Entscheidungen, die den Bericht von einer Zahlentabelle unterscheiden:
+
+- **Die Gebührenlast steht vor dem Ergebnis.** Sie ist der Teil, den der Nutzer
+  selbst steuert; das Marktergebnis nicht.
+- **`ReturnWithoutFeesPercent` ist die eigentliche Lehre.** War die Sitzung nur
+  wegen der Gebühren im Minus, bekommt sie ein eigenes Urteil
+  (`Report_VerdictFeesAtePlus`) statt eines allgemeinen „leider verloren".
+- **Das Startkapital ist in der Kurve immer sichtbar** (`EquityViewport`). Eine
+  Kurve, die auf ihr eigenes Min/Max zoomt, sieht bei −40 % genauso aus wie bei
+  +40 %. Die Fläche ist an dieser Linie zweifarbig geteilt — durchgehend eingefärbt
+  wäre ein Verlauf, der lange im Plus lag und erst am Ende abrutscht, komplett rot.
+
+**Randfälle, die real falsch aussahen und deshalb Tests haben:** Trefferquote ohne
+abgeschlossenen Rundlauf (zeigt „—", nicht „0 %"), Punktlandung auf dem Startkapital
+(eigenes Urteil, sonst stünde dort „du liegst darüber"), und die fortgesetzte Sitzung —
+`TradingSession.Restore` baut die Equity-Kurve bewusst nicht nach, der Bericht weist
+sich dann per `IsPartialSession` als Teilbericht aus.
 
 ### Warum das Hauptfenster-VM auf fünf Dateien liegt
 

@@ -10,6 +10,31 @@
   <data name="Window_About" xml:space="preserve"><value>Über Parkett</value></data>
   <data name="Window_Settings" xml:space="preserve"><value>Parkett — Einstellungen</value></data>
   <data name="Window_Update" xml:space="preserve"><value>Update verfügbar</value></data>
+  <data name="Window_Report" xml:space="preserve"><value>Abschlussbericht</value></data>
+
+  <!-- ============ Abschlussbericht ============ -->
+  <data name="Report_Headline" xml:space="preserve"><value>Sitzung beendet</value></data>
+  <data name="Report_Subline" xml:space="preserve"><value>{0} · {1} Handelstage · {2} bis {3}</value></data>
+  <data name="Report_FeeSection" xml:space="preserve"><value>WAS DICH DIE GEBÜHREN GEKOSTET HABEN</value></data>
+  <data name="Report_FeeDrag" xml:space="preserve"><value>Gebührenlast</value></data>
+  <data name="Report_FeeDragHint" xml:space="preserve"><value>Anteil deines Startkapitals, der in Gebühren geflossen ist. Ab etwa 10 % pro Jahr ist eine Strategie durch Handeln allein kaum noch zu retten.</value></data>
+  <data name="Report_FeesPaid" xml:space="preserve"><value>Gezahlte Gebühren</value></data>
+  <data name="Report_ResultWithoutFees" xml:space="preserve"><value>Ergebnis ohne Gebühren</value></data>
+  <data name="Report_CurveSection" xml:space="preserve"><value>DEPOTWERT IM VERLAUF</value></data>
+  <data name="Report_CurveHint" xml:space="preserve"><value>Die gestrichelte Linie ist dein Startkapital. Der Kreis markiert den tiefsten Punkt unterhalb eines vorherigen Hochs.</value></data>
+  <data name="Report_MetricsSection" xml:space="preserve"><value>KENNZAHLEN</value></data>
+  <data name="Report_StartEquity" xml:space="preserve"><value>Startkapital</value></data>
+  <data name="Report_EndEquity" xml:space="preserve"><value>Endwert</value></data>
+  <data name="Report_TotalReturn" xml:space="preserve"><value>Gesamtergebnis</value></data>
+  <data name="Report_MaxDrawdown" xml:space="preserve"><value>Maximaler Rückgang</value></data>
+  <data name="Report_TradeCount" xml:space="preserve"><value>Rundläufe</value></data>
+  <data name="Report_WinRate" xml:space="preserve"><value>Trefferquote</value></data>
+  <data name="Report_NoTrades" xml:space="preserve"><value>Du hast keinen einzigen Rundlauf abgeschlossen — es gibt noch nichts zu bewerten.</value></data>
+  <data name="Report_PartialHint" xml:space="preserve"><value>Diese Sitzung wurde fortgesetzt. Die Zahlen gelten nur für den fortgesetzten Teil — das ursprüngliche Startkapital waren {0}.</value></data>
+  <data name="Report_VerdictGain" xml:space="preserve"><value>Du liegst über deinem Startkapital. Sieh dir trotzdem die Gebührenlast an: die zahlst du unabhängig davon, wohin der Kurs gelaufen ist.</value></data>
+  <data name="Report_VerdictFlat" xml:space="preserve"><value>Du landest genau da, wo du angefangen hast. Ohne abgeschlossene Rundläufe gibt es noch nichts zu bewerten — die Gebühren wären aber so oder so angefallen.</value></data>
+  <data name="Report_VerdictLoss" xml:space="preserve"><value>Du liegst unter deinem Startkapital. Vergleich den Verlust mit der Gebührenlast — ein Teil davon war nie eine Marktentscheidung.</value></data>
+  <data name="Report_VerdictFeesAtePlus" xml:space="preserve"><value>Ohne Gebühren wäre diese Sitzung im Plus gewesen. Die Strategie hat funktioniert, die Handelshäufigkeit nicht.</value></data>
 
   <!-- ============ Kopfbereich ============ -->
   <data name="Main_TradingDay" xml:space="preserve"><value>Handelstag</value></data>

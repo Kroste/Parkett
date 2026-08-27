@@ -64,8 +64,10 @@ chmod +x Parkett-*-x86_64.AppImage
    price. If the cash is not enough, the status bar says so.
 4. **Check the executions** — every fill lands in the list with price and fee, and as a
    triangle on the chart.
-5. **End of session** — once the history has run out, the status bar sums up result,
-   round trips, hit rate and fee drag.
+5. **End of session** — once the history has run out, a report opens: what the fees
+   cost you, your portfolio value over time against your starting capital, the key
+   figures, and a plain-language verdict. The status bar keeps the short version
+   after you close it.
 
 The portfolio starts with €10,000 of play money. Short selling is deliberately blocked.
 
@@ -116,7 +118,7 @@ Python dependency) produce the same result. Change both when the design changes.
 
 ```bash
 dotnet build   # build
-dotnet test    # tests (135 of them)
+dotnet test    # tests (160 of them)
 dotnet run --project Parkett
 ```
 

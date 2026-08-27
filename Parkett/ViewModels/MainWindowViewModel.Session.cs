@@ -154,6 +154,13 @@ public sealed partial class MainWindowViewModel
         }
     }
 
+    /// <summary>
+    /// Meldet, dass die Sitzung durchgelaufen ist und der Abschlussbericht gezeigt
+    /// werden soll. Das VM baut kein Fenster — das MainWindow hängt sich hier ein,
+    /// wie es auch Einstellungen und Über-Fenster öffnet.
+    /// </summary>
+    public event EventHandler<ReportWindowViewModel>? SessionFinished;
+
     private void FinishSession()
     {
         Stop();
@@ -162,6 +169,9 @@ public sealed partial class MainWindowViewModel
         HasSavedSession = false;
 
         var report = _session.Report();
+
+        // Die Statuszeile bleibt als Kurzfassung stehen: sie ist noch da, wenn der
+        // Bericht längst geschlossen ist.
         SetStatus(
             "Status_SessionFinished",
             report.TotalReturnPercent.ToString("+0.00;-0.00;0.00", CultureInfo.CurrentCulture) + " %",
@@ -170,6 +180,14 @@ public sealed partial class MainWindowViewModel
             report.FeeDragPercent.ToString("N1", CultureInfo.CurrentCulture) + " %");
 
         Log.Info("Sitzung beendet: {Report}", report);
+
+        SessionFinished?.Invoke(this, new ReportWindowViewModel(
+            report,
+            _session.EquityCurve,
+            _clock?.Symbol ?? SelectedInstrument?.Symbol ?? "—",
+            _clock?.Total ?? _session.EquityCurve.Count,
+            _session.StartingCash,
+            _session.Portfolio.Currency));
     }
 
     private void Stop()
