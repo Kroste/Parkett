@@ -25,6 +25,17 @@ Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-U
 angeschlossen, JsonStore-Quarantäne eingegrenzt, Emoji-Font-Fallback, Log-Pfade,
 Umlaute, `.editorconfig`, CI-Annotationen, VM-Aufteilung. Details in der Referenz.
 
+**v0.3.0 ist veröffentlicht** — das erste echte Release, mit win-x64-ZIP,
+linux-x64-Tarball und AppImage. Der Release-Workflow ist damit erstmals scharf
+gelaufen und zweimal repariert worden (siehe Stolperfallen).
+
+⚠️ **Der Update-Check funktioniert noch nicht, und das liegt nicht am Code:
+`Kroste/Parkett` ist ein privates Repository.** Die GitHub-API antwortet auf
+anonyme Anfragen an private Repos mit **404** statt 403 — sie verrät die Existenz
+nicht. Für den Direktverkauf muss das Repo (oder wenigstens ein Release-Kanal)
+öffentlich sein, sonst kann keine ausgelieferte Fassung Updates finden und
+niemand die Pakete herunterladen. Das ist eine Produktentscheidung, kein Bug.
+
 Fertig:
 
 - **Domänenkern** (`Domain/`): `Order`, `Fill`, `Position`, `Portfolio`, `MatchingEngine`,
