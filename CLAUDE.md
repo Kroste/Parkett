@@ -172,12 +172,21 @@ folgen weiter der OS-Kultur. Sie mitzuschalten würde mitten in der Sitzung das
 Dezimaltrennzeichen der Eingabefelder ändern — ein Nutzer, der gerade „103,50" getippt hat,
 hätte plötzlich eine ungültige Eingabe.
 
-### Bekannte Einschränkung: Flaggen-Emoji
+### Emoji im UI: der Font-Fallback ist Pflicht
 
-Der Sprachumschalter nutzt Regional-Indicator-Emoji (🇩🇪/🇬🇧). Windows rendert die
-grundsätzlich nicht als Flaggen, sondern als Buchstabenpaar; im Testcontainer ohne
-Emoji-Font ebenfalls. Unter Linux mit Noto Color Emoji sieht es richtig aus. Wenn es
-überall gleich aussehen soll, müssen kleine Flaggen-PNGs als Assets mitgeliefert werden.
+Inter bringt keine Emoji-Glyphen mit. Ohne `FontManagerOptions.FontFallbacks` in
+`BuildAvaloniaApp` rendern die Flaggen des Sprachumschalters (🇩🇪/🇬🇧) und die
+Piktogramme der Transportleiste (▶ ⏸ ⏭) als Ersatzkästchen. Der Fallback zeigt
+auf `Segoe UI Emoji` bzw. `Noto Color Emoji`.
+
+**Falle dabei:** `WithInterFont()` setzt die Standardfamilie über dieselben Options.
+Wer sie ersetzt, muss `DefaultFamilyName = "fonts:Inter#Inter"` erneut angeben —
+sonst fällt die ganze App auf die System-Schrift zurück.
+
+Bleibt: Windows rendert Regional-Indicator-Paare grundsätzlich nicht als Flaggen,
+sondern als Buchstabenpaar (`DE`/`GB`) — das ist eine Entscheidung von Segoe UI Emoji,
+kein Fehlen des Fonts. Unter Linux mit Noto Color Emoji sieht es richtig aus. Wer es
+überall gleich haben will, muss kleine Flaggen-PNGs als Assets mitliefern.
 
 ### Wichtige Klassen
 

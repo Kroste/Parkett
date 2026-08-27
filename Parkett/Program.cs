@@ -1,4 +1,6 @@
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Platform;
 using NLog;
 using Parkett.Services;
 
@@ -36,5 +38,29 @@ internal static class Program
         AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
+            .With(EmojiFontOptions())
             .LogToTrace();
+
+    /// <summary>
+    /// Inter bringt keine Emoji-Glyphen mit. Ohne diesen Fallback rendern die
+    /// Länderflaggen im Sprachumschalter und die Piktogramme der Transportleiste
+    /// als Ersatzkästchen.
+    ///
+    /// FALLE: <c>WithInterFont()</c> setzt die Standardfamilie über dieselben
+    /// Options. Wer sie ersetzt, muss <see cref="FontManagerOptions.DefaultFamilyName"/>
+    /// erneut angeben — sonst fällt die ganze App auf die System-Schrift zurück.
+    /// </summary>
+    private static FontManagerOptions EmojiFontOptions()
+    {
+        var emojiFamily = OperatingSystem.IsWindows() ? "Segoe UI Emoji" : "Noto Color Emoji";
+
+        return new FontManagerOptions
+        {
+            DefaultFamilyName = "fonts:Inter#Inter",
+            FontFallbacks =
+            [
+                new FontFallback { FontFamily = new FontFamily(emojiFamily) },
+            ],
+        };
+    }
 }
