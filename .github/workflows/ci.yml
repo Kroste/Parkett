@@ -13,7 +13,7 @@ jobs:
         with:
           fetch-depth: 0 # MinVer braucht die volle Historie inkl. Tags
 
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
           cache: true
@@ -21,4 +21,64 @@ jobs:
 
       - run: dotnet restore
       - run: dotnet build --no-restore -c Release
-      - run: dotnet test --no-build -c Release
+
+      # --report-xunit-trx gehört HINTER den --Separator und kommt von xunit.v3
+      # selbst (kein Zusatzpaket). Nicht mit --report-trx verwechseln, und
+      # keinesfalls --logger "trx;..." nehmen: das ist ein VSTest-Flag, die
+      # Testing-Platform kennt es nicht, führt null Tests aus und der Lauf ist
+      # rot, ohne dass ein Test fehlgeschlagen wäre.
+      - name: Tests
+        run: >
+          dotnet test --no-build -c Release --
+          --report-xunit-trx --report-xunit-trx-filename test-results.trx
+
+      # Ohne diesen Schritt steht bei einem roten Lauf nur "Process completed
+      # with exit code 1" in der Zusammenfassung, und das Job-Log gibt die API
+      # nur mit Admin-Rechten am Repo heraus. Annotations sind dagegen
+      # öffentlich lesbar.
+      - name: Testfehler als Annotation
+        if: failure()
+        shell: bash
+        run: |
+          trx=$(find . -name test-results.trx -not -path './.git/*' | head -1)
+
+          if [ -z "$trx" ]; then
+            echo "::warning::Keine TRX gefunden — der Lauf ist vor den Tests gescheitert."
+            exit 0
+          fi
+
+          # Aus der TRX parsen, nicht aus der Konsolenausgabe: die ist
+          # lokalisiert ("failed" vs. "fehlerhaft") und ein Regex darauf bricht,
+          # sobald das SDK auf Deutsch ausgibt.
+          python3 - "$trx" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+
+          ns = {"t": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
+          root = ET.parse(sys.argv[1]).getroot()
+          fehler = 0
+
+          for result in root.iterfind(".//t:UnitTestResult", ns):
+              if result.get("outcome") != "Failed":
+                  continue
+
+              fehler += 1
+              name = result.get("testName", "unbekannter Test")
+              info = result.find("t:Output/t:ErrorInfo", ns)
+              text = (info.findtext("t:Message", "", ns) if info is not None else "").strip()
+              stack = (info.findtext("t:StackTrace", "", ns) if info is not None else "")
+
+              # Der oberste Frame ist meist FluentAssertions-Interna und sagt
+              # nichts darüber, wo der Test steht — den ersten eigenen nehmen.
+              frame = next(
+                  (z.strip() for z in stack.splitlines() if "Parkett.Tests" in z),
+                  "",
+              )
+              if frame:
+                  text = f"{text}\n{frame}"
+
+              # Zeilenumbrüche escapen, sonst bricht die Annotation nach der
+              # ersten Zeile ab.
+              print(f"::error title={name}::{text.replace(chr(10), '%0A')}")
+
+          print(f"{fehler} fehlgeschlagene Tests annotiert.", file=sys.stderr)
+          PY
