@@ -79,6 +79,7 @@
   <!-- ============ Status ============ -->
   <data name="Status_ChooseInstrument" xml:space="preserve"><value>Instrument wählen und Sitzung starten.</value></data>
   <data name="Status_SessionRunning" xml:space="preserve"><value>Sitzung läuft: {0}, {1} Handelstage.</value></data>
+  <data name="Status_SessionRunningMulti" xml:space="preserve"><value>Sitzung läuft: {0} Instrumente, {1} Handelstage.</value></data>
   <data name="Status_SessionResumed" xml:space="preserve"><value>Sitzung fortgesetzt: {0} ab dem {1}.</value></data>
   <data name="Status_SessionFinished" xml:space="preserve"><value>Sitzung beendet: {0} Ergebnis, {1} Rundläufe, Trefferquote {2}, Gebührenlast {3} des Startkapitals.</value></data>
   <data name="Status_NotEnoughHistory" xml:space="preserve"><value>Für {0} liegt zu wenig Historie vor.</value></data>

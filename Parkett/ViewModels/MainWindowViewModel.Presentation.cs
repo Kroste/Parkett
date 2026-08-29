@@ -51,10 +51,21 @@ public sealed partial class MainWindowViewModel
         }
     }
 
-    private void RefreshMarkers() =>
+    /// <summary>
+    /// Marker nur für das angezeigte Instrument. <b>Ungefiltert</b> landete ein Kauf in
+    /// einem anderen Wert mit dessen Preis in diesem Chart — bei unterschiedlichen
+    /// Kursniveaus liegt der Marker dann weit außerhalb der Kerzen oder verzerrt die
+    /// Skalierung.
+    /// </summary>
+    private void RefreshMarkers()
+    {
+        var symbol = _clock?.ActiveSymbol;
+
         ChartMarkers = _session.Fills
+            .Where(f => symbol is null || string.Equals(f.Symbol, symbol, StringComparison.OrdinalIgnoreCase))
             .Select(f => new ChartMarker(f.ExecutedAt, f.Price, f.Side))
             .ToList();
+    }
 
     private void RefreshOpenOrders()
     {

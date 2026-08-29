@@ -18,7 +18,7 @@
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 186 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 201 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
@@ -62,7 +62,9 @@ Fertig:
   blockierender Check beim Start, der bei einem Fund `UpdatePromptWindow` zeigt.
   Beide beenden die App nach dem Start des Installers.
 - **Zeitsteuerung** (`Simulation/`): `SimulationClock` deckt die Historie Kerze für Kerze
-  auf, mit Vorlauf, Play/Pause/Schritt und vier Tempostufen.
+  auf, mit Vorlauf, Play/Pause/Schritt und vier Tempostufen. Läuft über **mehrere
+  Instrumente** auf einer gemeinsamen Zeitachse; die Auswahl im Hauptfenster bestimmt
+  nur, was der Chart zeigt und worauf sich eine neue Order bezieht.
 - **Chart** (`Charting/` + `Controls/CandlestickChart.cs`): Kerzen, Preisraster auf runden
   Werten, kulturgerechte Zeitachse, Fadenkreuz, Marker für eigene Ausführungen.
 - **Persistenz** (`Persistence/`): Einstellungen und unterbrochene Sitzung, atomar
@@ -94,30 +96,26 @@ Alles, was allein wegen Steam auf der Liste stand, ist entsprechend nach hinten
 gewandert — der Punkt selbst bleibt mit allen offenen Fragen erhalten, damit er
 beim Wiederaufgreifen vollständig ist.
 
-Kurzfristig:
+Die beiden kurzfristigen Punkte (Bericht exportieren, mehrere Instrumente pro
+Sitzung) sind am 2026-08-29 erledigt worden.
 
-1. **Mehrere Instrumente pro Sitzung.** Depot über mehrere Werte, Umschalten des Charts.
-   `Portfolio` kann das bereits, `SimulationClock` läuft noch auf einem Symbol.
-   **Hängt daran:** die Equity-Kurve über mehrere Werte, und ob der Bericht dann
-   pro Instrument oder für das Gesamtdepot aufschlüsselt.
+Als Nächstes:
 
-Mittelfristig:
-
-2. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
+1. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
    Zugang; damit verbreitet Parkett keine Daten weiter und braucht keine eigene Lizenz.
    Das ist der Weg zu „live" ohne fünfstellige Monatskosten.
-3. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
+2. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
    Data Usage Declaration. Erst freischalten, wenn `AgreementReference` gesetzt ist —
    `MarketDataLicense.IsUsableInPaidBuild` erzwingt das bereits.
-4. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
-5. **Meilensteine** (erste Sitzung beendet, ohne Totalverlust überstanden, 20 Rundläufe).
+3. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
+4. **Meilensteine** (erste Sitzung beendet, ohne Totalverlust überstanden, 20 Rundläufe).
    Der Abschlussbericht ist der natürliche Ort, sie auszulösen. Sie waren ursprünglich
    nur als Steam-Vorbereitung gedacht, haben aber auch im Direktverkauf Wert — deshalb
    bleiben sie auf der Liste, nur ohne Eile.
 
 Später — Steam:
 
-6. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
+5. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
    Entitlement. Demo als eigene App-ID. Drei Dinge sind vorher zu klären:
    - **Overlay-Risiko zuerst prüfen.** Avalonia rendert über Skia, das Steam-Overlay
      hängt an DirectX/OpenGL-Hooks. Funktioniert das nicht, ändert es die Machbarkeit
@@ -159,7 +157,36 @@ Repository ist eine Weiterverbreitung. Nur das erfundene `DEMO.csv` ist eingeche
 
 **Für den Direktverkauf ist die Frage damit erledigt** — dort liegt nur `DEMO.csv` bei,
 den Rest holt sich der Nutzer. Offen bleibt sie nur für eine auszuliefernde Fassung;
-das ist mit Steam zurückgestellt und steht als Teilfrage bei Roadmap-Punkt 6.
+das ist mit Steam zurückgestellt und steht als Teilfrage bei Roadmap-Punkt 5.
+
+### Mehrere Instrumente: eine Zeitachse für alle
+
+Zwei Historien haben selten dieselben Handelstage — Feiertage unterscheiden sich je
+Börse, Broker-Exporte haben Lücken. Liefe jedes Instrument auf einem eigenen Zähler,
+driftete das Depot auseinander: Wert A stünde im April, während B noch im März
+handelt. `SimulationClock` taktet deshalb auf der **sortierten Vereinigung aller
+Kerzenzeitpunkte** (`BuildTimeline`). Wer an einem Zeitpunkt keine Kerze hat, behält
+seinen letzten Kurs und fällt nicht aus der Depotbewertung.
+
+Drei Entscheidungen dazu:
+
+- **Die Sitzung läuft über alle geladenen Instrumente**, nicht über eine Mehrfachauswahl.
+  Ein Depot, das nur einen Wert halten darf, ist kein Depot — und eine zweite
+  Auswahl-UI vor dem Start hätte den Einstieg verkompliziert. Die ComboBox schaltet
+  ab jetzt den Chart um, auch mitten in der Sitzung.
+- **Marker im Chart werden nach Symbol gefiltert.** Ungefiltert landet ein Kauf in
+  einem anderen Wert mit dessen Preis in diesem Chart; bei unterschiedlichen
+  Kursniveaus liegt der Marker weit außerhalb der Kerzen und verzerrt die Skalierung.
+- **Die Equity-Kurve bekommt pro Zeitpunkt genau einen Punkt.** `RecordEquity`
+  überschreibt bei gleichem Zeitstempel — sonst zählte ein Tag mit fünf Instrumenten
+  fünffach und verzerrte jeden Drawdown. Das war schon so angelegt, bevor es mehrere
+  Instrumente gab.
+
+`SessionSnapshot` führt seit dieser Änderung `Symbols` mit. **Ohne die Liste ließen
+sich Positionen in anderen Werten nach dem Fortsetzen nicht mehr bewerten** — ihre
+Historie wäre gar nicht geladen, und das Depot zeigte sie mit dem Einstandskurs.
+Stände aus Version 1 haben die Liste nicht; dann gilt `Symbol` allein
+(`Ein_gespeicherter_Stand_aus_Version_1_bleibt_lesbar` hält das fest).
 
 ### Warum Gebühren ein eigenes Konzept sind
 
@@ -342,7 +369,7 @@ kein Fehlen des Fonts. Unter Linux mit Noto Color Emoji sieht es richtig aus. We
 | `Services/TradingSession` | Klammert alles zusammen, hält Orderbuch und Equity-Kurve |
 | `Services/MarketDataLicense` | Rechtsrahmen einer Datenquelle, gatet den Verkaufsbuild |
 | `Licensing/FeatureGate` | Einzige Tabelle, welche Funktion welche Stufe braucht |
-| `Simulation/SimulationClock` | Deckt die Historie Kerze für Kerze auf, ohne eigenen Timer |
+| `Simulation/SimulationClock` | Deckt mehrere Historien auf einer gemeinsamen Zeitachse auf, ohne eigenen Timer |
 | `Charting/ChartViewport` | Komplette Chart-Skalierung, ohne Avalonia-Bezug und testbar |
 | `Controls/CandlestickChart` | Zeichnet nur; Farben kommen als StyledProperty von außen |
 | `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung **nur bei kaputtem JSON**, stürzt nie an Nutzerdaten |

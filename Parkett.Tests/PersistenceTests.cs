@@ -243,6 +243,78 @@ public class PersistenceTests
 
         zurueck.Portfolio.GetPosition("SAP")!.AveragePrice.Should().Be(123.55m, "gekauft wird zum Briefkurs");
     }
+    /// <summary>
+    /// Ein Stand aus Version 1 kennt nur ein einziges <c>Symbol</c> und gar kein
+    /// <c>Symbols</c>. Er muss weiter lesbar bleiben — sonst verliert jeder, der von
+    /// einer älteren Fassung aktualisiert, seine unterbrochene Sitzung. Der Test
+    /// schreibt bewusst rohes JSON im alten Format statt über den Mapper zu gehen:
+    /// nur so prüft er wirklich das Format und nicht die aktuelle Klasse.
+    /// </summary>
+    [Fact]
+    public void Ein_gespeicherter_Stand_aus_Version_1_bleibt_lesbar()
+    {
+        using var dir = new TempDirectory();
+
+        var altesFormat = """
+            {
+              "version": 1,
+              "symbol": "SAP",
+              "candleIndex": 120,
+              "startingCash": 10000,
+              "cash": 8989,
+              "currency": "EUR",
+              "totalFees": 1,
+              "realizedPnL": 0,
+              "positions": [ { "symbol": "SAP", "quantity": 10, "averagePrice": 101 } ],
+              "fills": [],
+              "savedAt": "2026-05-04T10:00:00+00:00"
+            }
+            """;
+
+        File.WriteAllText(Path.Combine(dir.Path, "session.json"), altesFormat);
+
+        var geladen = new SessionStore(dir.Path).Load();
+
+        geladen.Should().NotBeNull();
+        geladen!.Symbol.Should().Be("SAP");
+        geladen.CandleIndex.Should().Be(120);
+        geladen.Symbols.Should().BeEmpty("Version 1 kannte die Liste noch nicht");
+
+        // Und die Sitzung selbst kommt vollständig zurück.
+        var sitzung = SessionSnapshotMapper.ToSession(geladen, TieredFeeModel.Neobroker);
+        sitzung.Portfolio.Cash.Should().Be(8989m);
+        sitzung.Portfolio.Positions.Should().ContainKey("SAP");
+    }
+
+    /// <summary>Neue Stände führen alle Instrumente mit — sonst ließen sich Positionen
+    /// in anderen Werten nach dem Fortsetzen nicht bewerten.</summary>
+    [Fact]
+    public void Ein_Stand_merkt_sich_alle_Instrumente_der_Sitzung()
+    {
+        using var dir = new TempDirectory();
+        var store = new SessionStore(dir.Path);
+        var session = new TradingSession(10_000m, TieredFeeModel.Free);
+
+        store.Save(SessionSnapshotMapper.ToSnapshot(session, "SAP", 42, Now, ["SAP", "DEMO", "BMW"]));
+
+        var geladen = store.Load()!;
+
+        geladen.Symbol.Should().Be("SAP", "das war das angezeigte Instrument");
+        geladen.Symbols.Should().BeEquivalentTo(["SAP", "DEMO", "BMW"]);
+    }
+
+    /// <summary>Ohne Liste gilt das angezeigte Instrument — der Einzelfall bleibt bequem.</summary>
+    [Fact]
+    public void Ohne_Instrumentenliste_steht_das_angezeigte_Instrument_allein()
+    {
+        using var dir = new TempDirectory();
+        var store = new SessionStore(dir.Path);
+
+        store.Save(SessionSnapshotMapper.ToSnapshot(
+            new TradingSession(1_000m, TieredFeeModel.Free), "DEMO", 5, Now));
+
+        store.Load()!.Symbols.Should().BeEquivalentTo(["DEMO"]);
+    }
 }
 
 public class SecretProtectorTests
@@ -284,4 +356,5 @@ public class SecretProtectorTests
         new SecretProtector(dir.Path).Unprotect(null).Should().BeNull();
         new SecretProtector(dir.Path).Unprotect("  ").Should().BeNull();
     }
+
 }

@@ -1,5 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
+using Parkett.Domain;
+using Parkett.Services;
 using Parkett.Localization;
 using Parkett.Simulation;
 
@@ -34,7 +36,14 @@ public sealed partial class MainWindowViewModel
             return;
         }
 
-        var fills = _session.OnQuote(step.Quote, step.Candle.OpenTime);
+        // Jeder Kurs dieses Zeitpunkts geht einzeln in die Sitzung: das Depot wird neu
+        // bewertet, und offene Orders prüft die Sitzung gegen ihr eigenes Symbol.
+        var fills = new List<Fill>();
+
+        foreach (var quote in step.Quotes)
+        {
+            fills.AddRange(_session.OnQuote(quote, step.At));
+        }
 
         foreach (var fill in fills)
         {
@@ -48,6 +57,26 @@ public sealed partial class MainWindowViewModel
         }
 
         RefreshFromClock();
+    }
+
+    /// <summary>
+    /// Instrumentenwechsel während der Sitzung: schaltet nur die Anzeige um. Der Ablauf
+    /// läuft für alle Instrumente weiter, offene Orders und Positionen bleiben, wie sie
+    /// sind — der Chart springt lediglich auf einen anderen Wert desselben Depots.
+    /// </summary>
+    partial void OnSelectedInstrumentChanged(Instrument? value)
+    {
+        if (value is null || _clock is null || !IsSessionRunning)
+        {
+            return;
+        }
+
+        if (_clock.ShowSymbol(value.Symbol))
+        {
+            RefreshMarkers();
+            RefreshFromClock();
+            Log.Debug("Chart zeigt jetzt {Symbol}.", value.Symbol);
+        }
     }
 
     partial void OnSpeedChanged(SimulationSpeed value)

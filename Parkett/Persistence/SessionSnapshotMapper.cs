@@ -7,7 +7,16 @@ namespace Parkett.Persistence;
 /// <summary>Übersetzt zwischen laufender Sitzung und Speicherformat.</summary>
 public static class SessionSnapshotMapper
 {
-    public static SessionSnapshot ToSnapshot(TradingSession session, string symbol, int candleIndex, DateTimeOffset savedAt)
+    /// <param name="symbol">Das Instrument, das im Chart stand — es wird beim Fortsetzen wieder gezeigt.</param>
+    /// <param name="symbols">
+    /// Alle Instrumente der Sitzung. <c>null</c> bedeutet: nur <paramref name="symbol"/>.
+    /// </param>
+    public static SessionSnapshot ToSnapshot(
+        TradingSession session,
+        string symbol,
+        int candleIndex,
+        DateTimeOffset savedAt,
+        IReadOnlyList<string>? symbols = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentException.ThrowIfNullOrWhiteSpace(symbol);
@@ -17,6 +26,7 @@ public static class SessionSnapshotMapper
         return new SessionSnapshot
         {
             Symbol = symbol,
+            Symbols = symbols ?? [symbol],
             CandleIndex = candleIndex,
             StartingCash = session.StartingCash,
             Cash = portfolio.Cash,

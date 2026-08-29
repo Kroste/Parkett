@@ -24,7 +24,19 @@ public sealed record SessionSnapshot
     /// <summary>Formatversion — erlaubt spätere Migration statt stillem Datenverlust.</summary>
     public int Version { get; init; } = 1;
 
+    /// <summary>
+    /// Das Instrument, das beim Speichern im Chart stand. Bleibt erhalten, damit ein
+    /// Stand aus Version 1 (eine Sitzung = ein Instrument) unverändert lesbar ist.
+    /// </summary>
     public required string Symbol { get; init; }
+
+    /// <summary>
+    /// Alle Instrumente der Sitzung. Leer bei Ständen aus Version 1 — dann gilt
+    /// <see cref="Symbol"/> allein. Ohne diese Liste ließen sich Positionen in
+    /// anderen Werten nach dem Fortsetzen nicht mehr bewerten: ihre Historie wäre
+    /// gar nicht geladen, und das Depot zeigte sie mit dem Einstandskurs.
+    /// </summary>
+    public IReadOnlyList<string> Symbols { get; init; } = [];
 
     public required int CandleIndex { get; init; }
 

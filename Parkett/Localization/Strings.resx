@@ -79,6 +79,7 @@
   <!-- ============ Status ============ -->
   <data name="Status_ChooseInstrument" xml:space="preserve"><value>Choose an instrument and start a session.</value></data>
   <data name="Status_SessionRunning" xml:space="preserve"><value>Session running: {0}, {1} trading days.</value></data>
+  <data name="Status_SessionRunningMulti" xml:space="preserve"><value>Session running: {0} instruments, {1} trading days.</value></data>
   <data name="Status_SessionResumed" xml:space="preserve"><value>Session resumed: {0} from {1}.</value></data>
   <data name="Status_SessionFinished" xml:space="preserve"><value>Session finished: {0} result, {1} round trips, hit rate {2}, fee drag {3} of starting capital.</value></data>
   <data name="Status_NotEnoughHistory" xml:space="preserve"><value>Not enough history for {0}.</value></data>
