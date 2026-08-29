@@ -24,3 +24,8 @@ __pycache__/
 # Signaturschlüssel für Lizenzen — gehören NIE ins Repository
 *.pem
 *.key
+
+# Zwischenstände des AppImage-Baus (packaging/linux/build-appimage.sh)
+AppDir/
+appimagetool
+*.AppImage
