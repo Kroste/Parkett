@@ -111,7 +111,7 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
     {
         // Wirkt sofort in allen Fenstern — kein Neustart-Hinweis.
         LocalizationService.Instance.SetCulture(value.Iso);
-        Persist(_settings with { UiCulture = value.Iso });
+        Persist(s => s with { UiCulture = value.Iso });
 
         Log.Info("UI-Sprache gewechselt auf {Iso}.", value.Iso);
     }
@@ -125,7 +125,7 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
             return;
         }
 
-        Persist(_settings with { FeeModel = value.Id });
+        Persist(s => s with { FeeModel = value.Id });
         Log.Info("Gebührenmodell gewechselt auf {Model}.", value.Id);
     }
 
@@ -136,7 +136,7 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
 
         if (key.Length == 0)
         {
-            Persist(_settings with { LicenseKey = null });
+            Persist(s => s with { LicenseKey = null });
             LicenseFeedback = string.Empty;
             return;
         }
@@ -157,14 +157,18 @@ public sealed partial class SettingsWindowViewModel : ViewModelBase
             return;
         }
 
-        Persist(_settings with { LicenseKey = key });
+        Persist(s => s with { LicenseKey = key });
         LicenseFeedback = L.T("Settings_License_Restart");
     }
 
-    private void Persist(AppSettings updated)
+    /// <summary>
+    /// Schreibt über <see cref="SettingsService.Update"/>, nicht über <c>Save</c>:
+    /// sonst verlöre dieses Fenster umgekehrt den Stand, den das Hauptfenster
+    /// zwischenzeitlich gesichert hat (Symbol, Tempo, Stückzahl).
+    /// </summary>
+    private void Persist(Func<AppSettings, AppSettings> change)
     {
-        _settings = updated;
-        _settingsService.Save(_settings);
+        _settings = _settingsService.Update(change);
     }
 
     /// <summary>Aktuell gewählte Kultur als CultureInfo — für Vorschauen und Tests.</summary>

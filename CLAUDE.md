@@ -18,7 +18,7 @@
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 184 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 186 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
@@ -287,6 +287,17 @@ fertig, die Funktionen dahinter sind es nicht.
   das trotzdem die vollen 1550 px ausgibt. Wer stattdessen das Fenster rendert
   (so lief `--report-preview` bis v0.3.0), bekommt Titelleiste, Fußleiste und einen
   abgeschnittenen Bericht.
+
+- **Zwei Fenster, zwei Kopien derselben Einstellungen — und wer zuletzt speichert,
+  gewinnt.** Hauptfenster und Einstellungen hielten je ein `AppSettings` und schrieben
+  über `Save` die *ganze* Datei. `PersistOnExit` sicherte beim Beenden die beim Start
+  geladene Kopie und setzte damit alles zurück, was zwischenzeitlich in den
+  Einstellungen gespeichert worden war: Lizenzschlüssel, Sprache, Gebührenmodell.
+  Beim Lizenzschlüssel fiel es auf, weil nach dem Neustart wieder „kostenlose Fassung"
+  dastand — und zwar ohne eine einzige Logzeile, weil `LicenseKeyEditionProvider` bei
+  leerem Schlüssel sofort zurückkehrt. Seitdem geht jede Änderung über
+  `SettingsService.Update(change)`: frisch laden, ändern, schreiben. Wer hier `Save`
+  direkt aufruft, baut den Fehler wieder ein.
 
 ### Sprachwechsel: was live geht und was nicht
 

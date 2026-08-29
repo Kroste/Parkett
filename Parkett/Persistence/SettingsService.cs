@@ -39,6 +39,27 @@ public sealed class SettingsService
         return stored with { LicenseKey = _protector.Unprotect(stored.LicenseKey) };
     }
 
+    /// <summary>
+    /// Ändert die gespeicherten Einstellungen, ohne die Felder anderer Fenster zu
+    /// verlieren: erst frisch laden, dann <paramref name="change"/> darauf anwenden,
+    /// dann schreiben. Liefert den geschriebenen Stand zurück.
+    ///
+    /// <b>Warum das nötig ist:</b> Hauptfenster und Einstellungen halten je eine
+    /// eigene Kopie und schreiben die ganze Datei. Wer sie blind speichert, macht
+    /// jede Änderung des anderen rückgängig — der Lizenzschlüssel überlebte so das
+    /// Beenden nicht, weil das Hauptfenster seine beim Start geladene Kopie
+    /// zurückschrieb.
+    /// </summary>
+    public AppSettings Update(Func<AppSettings, AppSettings> change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+
+        var updated = change(Load());
+        Save(updated);
+
+        return updated;
+    }
+
     public bool Save(AppSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);

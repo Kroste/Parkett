@@ -9,6 +9,57 @@ public class PersistenceTests
 {
     private static readonly DateTimeOffset Now = new(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
 
+    /// <summary>
+    /// Der Fehler, der eine bezahlte Lizenz wertlos machte: Hauptfenster und
+    /// Einstellungen halten je eine eigene Kopie der Einstellungen und schreiben die
+    /// ganze Datei. Das Hauptfenster sicherte beim Beenden seine beim Start geladene
+    /// Kopie — und setzte damit den Lizenzschlüssel zurück auf null, den das
+    /// Einstellungsfenster kurz vorher gespeichert hatte. Sichtbar wurde das erst
+    /// beim nächsten Start, als "kostenlose Fassung" dastand.
+    /// </summary>
+    [Fact]
+    public void Update_behaelt_Felder_die_ein_anderes_Fenster_zwischenzeitlich_geschrieben_hat()
+    {
+        using var dir = new TempDirectory();
+        var service = new SettingsService(dir.Path, new TestProtector());
+
+        // Das Hauptfenster lädt beim Start — noch ohne Lizenz.
+        var beimStart = service.Load();
+        beimStart.LicenseKey.Should().BeNull();
+
+        // Das Einstellungsfenster trägt einen Schlüssel ein und speichert.
+        service.Update(s => s with { LicenseKey = "schluessel-aus-dem-einstellungsfenster" });
+
+        // Das Hauptfenster sichert beim Beenden seinen eigenen Stand.
+        service.Update(s => s with { LastSymbol = "SAP", DefaultQuantity = 42 });
+
+        var nachNeustart = service.Load();
+
+        nachNeustart.LicenseKey.Should().Be(
+            "schluessel-aus-dem-einstellungsfenster",
+            "sonst ist die Lizenz nach dem nächsten Start wieder weg");
+        nachNeustart.LastSymbol.Should().Be("SAP");
+        nachNeustart.DefaultQuantity.Should().Be(42);
+    }
+
+    /// <summary>Und die Gegenrichtung: das Einstellungsfenster darf den Sitzungsstand nicht plätten.</summary>
+    [Fact]
+    public void Update_aus_den_Einstellungen_laesst_den_Stand_des_Hauptfensters_stehen()
+    {
+        using var dir = new TempDirectory();
+        var service = new SettingsService(dir.Path, new TestProtector());
+
+        service.Update(s => s with { LastSymbol = "SAP", DefaultQuantity = 42 });
+        service.Update(s => s with { UiCulture = "de", FeeModel = "Neobroker" });
+
+        var geladen = service.Load();
+
+        geladen.LastSymbol.Should().Be("SAP");
+        geladen.DefaultQuantity.Should().Be(42);
+        geladen.UiCulture.Should().Be("de");
+        geladen.FeeModel.Should().Be("Neobroker");
+    }
+
     [Fact]
     public void Einstellungen_ueberleben_einen_Rundlauf()
     {

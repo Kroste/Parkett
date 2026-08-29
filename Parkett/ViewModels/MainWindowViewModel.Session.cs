@@ -134,14 +134,16 @@ public sealed partial class MainWindowViewModel
     /// </summary>
     public void PersistOnExit()
     {
-        _settings = _settings with
+        // Nur die drei Felder, die dem Hauptfenster gehören — Sprache, Gebührenmodell
+        // und Lizenzschlüssel kommen frisch von der Platte. Vorher schrieb das hier
+        // die beim Start geladene Kopie zurück und machte jede Änderung aus dem
+        // Einstellungsfenster wieder rückgängig.
+        _settings = _settingsService.Update(gespeichert => gespeichert with
         {
-            LastSymbol = SelectedInstrument?.Symbol ?? _settings.LastSymbol,
+            LastSymbol = SelectedInstrument?.Symbol ?? gespeichert.LastSymbol,
             PreferredSpeed = _pendingSpeed,
             DefaultQuantity = Quantity,
-        };
-
-        _settingsService.Save(_settings);
+        });
 
         if (IsSessionRunning && _clock is not null)
         {
