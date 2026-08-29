@@ -20,3 +20,7 @@ NuGet-Local/
 # Python-Bytecode der Beschaffungsskripte
 __pycache__/
 *.pyc
+
+# Signaturschlüssel für Lizenzen — gehören NIE ins Repository
+*.pem
+*.key

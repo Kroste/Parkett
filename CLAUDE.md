@@ -18,7 +18,7 @@
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 182 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 184 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
@@ -48,7 +48,12 @@ Fertig:
   die den Redistributionsstatus jeder Quelle *im Code* führt. `CsvHistoryProvider` liest
   mitgelieferte EOD-Historie.
 - **Lizenzierung** (`Licensing/`): `Edition`/`Feature`/`FeatureGate` plus offline prüfbare
-  Lizenzschlüssel (ECDSA P-256, kein Aktivierungsserver).
+  Lizenzschlüssel (ECDSA P-256, kein Aktivierungsserver). Signaturschlüsselpaar seit
+  2026-08-29 erzeugt, öffentlicher Teil steht in `App.LicensePublicKey`.
+- **Lizenzwerkzeug** (`Parkett.Keygen/`): erzeugt das Schlüsselpaar und stellt
+  Lizenzschlüssel aus. Eigenes Konsolenprojekt — der private Schlüssel darf die App
+  nie erreichen. Signiert über `LicenseVerifier.Sign` aus der App selbst, damit
+  Erzeugung und Prüfung nicht auseinanderlaufen.
 - **App-Gerüst**: DI, NLog mit Masking, GlobalExceptionHandler, Tray, ChromeWindow,
   AboutWindow, App-Icon, CI/Release-Workflows.
 - **Self-Update**: `UpdateService` lädt das Release-Asset und startet das
@@ -176,6 +181,30 @@ Fehlerquelle und ein Datenschutzthema, ohne einen entschlossenen Cracker aufzuha
 Der **private Schlüssel gehört nie ins Repository**; der öffentliche steht als
 `App.LicensePublicKey`. Auf Steam ist der Mechanismus ungenutzt: dort ist der App-Besitz
 die Lizenz.
+
+**Wo der private Schlüssel liegt:** `~/.config/parkett/license-signing-key.pem`
+(Modus 600, außerhalb des Repos, `.gitignore` sperrt `*.pem` zusätzlich).
+**Er ist nicht wiederherstellbar und gehört in ein Backup.** Geht er verloren, lassen
+sich für alle ausgelieferten Fassungen keine neuen Lizenzen mehr ausstellen — der
+eingebaute öffentliche Schlüssel prüft dann gegen ein Paar, das es nicht mehr gibt.
+Ein neues Paar entwertet umgekehrt jede bereits ausgestellte Lizenz; deshalb weigert
+sich `schluesselpaar`, eine vorhandene Datei zu überschreiben.
+
+Schlüssel ausstellen:
+
+```bash
+dotnet run --project Parkett.Keygen -- lizenz \
+  --key ~/.config/parkett/license-signing-key.pem \
+  --an "Vorname Nachname" --stufe Pro [--laeuft-ab 2027-12-31]
+```
+
+`pruefen --oeffentlich <base64> <schluessel>` macht die Gegenprobe genau so, wie die
+App es täte. **Was ein Pro-Schlüssel heute tatsächlich freischaltet**, ist wenig: das
+Etikett im Hauptfenster (`EditionText`) und das Instrumentenlimit
+(`FeatureGate.FreeInstrumentLimit`, 10 in der kostenlosen Fassung). Die übrigen
+Einträge in `FeatureGate` — mehrere Depots, eigene Datenquellen, Strategie-Auswertung,
+CSV-Export — zeigen auf Funktionen, die noch auf der Roadmap stehen. Die Tabelle ist
+fertig, die Funktionen dahinter sind es nicht.
 
 ### Stolperfallen, die hier schon zugeschlagen haben
 
@@ -308,6 +337,7 @@ kein Fehlen des Fonts. Unter Linux mit Noto Color Emoji sieht es richtig aus. We
 | `Services/UpdateService` | Release-Check, Download, plattformeigenes Austausch-Skript |
 | `Charting/EquityViewport` | Skalierung der Equity-Kurve, ohne Avalonia-Bezug und testbar |
 | `Views/ReportImage` | Rendert den Bericht als PNG — einziger Renderpfad für Knopf und Vorschau |
+| `Parkett.Keygen/Program` | Erzeugt das Signaturpaar und stellt Lizenzschlüssel aus (nie ausgeliefert) |
 | `ViewModels/ReportWindowViewModel` | Kennzahlen → Anzeigetexte und das Urteil in Worten |
 
 ### Der Abschlussbericht sagt mehr als die Kennzahlen

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Werkzeug des Verkaufsprozesses, kein Teil der ausgelieferten App. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Absicht: das Werkzeug signiert über LicenseVerifier.Sign aus der App selbst.
+         Ein nachgebauter Signierer hier wäre die eine Stelle, an der Erzeugungs- und
+         Prüfformat unbemerkt auseinanderlaufen könnten. -->
+    <ProjectReference Include="../Parkett/Parkett.csproj" />
+  </ItemGroup>
+</Project>

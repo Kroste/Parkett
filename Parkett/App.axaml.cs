@@ -23,7 +23,8 @@ public partial class App : Application
     /// Wird beim Einrichten des Direktverkaufs eingetragen — der PRIVATE Schlüssel
     /// gehört niemals ins Repository.
     /// </summary>
-    private const string LicensePublicKey = "";
+    private const string LicensePublicKey =
+        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZpvDmBUI8JoqC9BuzaPqgD2HutXfaaqGHj/jhkKs6cfw6dlIjvOcimT5dZYm5wD3lwcbIWUQdjDMb9kVUQHVrQ==";
 
     // GC-Referenz: ohne Feld sammelt der GC den TrayController ein und das Icon verschwindet.
     private TrayController? _tray;
