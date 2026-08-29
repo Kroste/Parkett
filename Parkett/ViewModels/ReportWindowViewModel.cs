@@ -2,6 +2,7 @@ using System.Globalization;
 using Parkett.Charting;
 using Parkett.Domain;
 using Parkett.Localization;
+using Parkett.Services;
 
 namespace Parkett.ViewModels;
 
@@ -123,6 +124,39 @@ public sealed class ReportWindowViewModel : ViewModelBase
     public string NoTradesText => L.T("Report_NoTrades");
 
     /// <summary>
+    /// Vorschlag für den Speichern-Dialog. Das Datum ist das Sitzungsende, nicht
+    /// „heute": ein Bericht, der Wochen später noch einmal aus dem gesicherten Stand
+    /// geöffnet wird, soll trotzdem seine eigene Sitzung im Namen tragen.
+    /// </summary>
+    public string SuggestedFileName => ReportExport.SuggestFileName(
+        Symbol,
+        EquityCurve.Count > 0 ? EquityCurve[^1].At : DateTimeOffset.Now);
+
+    /// <summary>
+    /// Rückmeldung des Exports. Als Schlüssel plus Argumente gemerkt, nicht als
+    /// fertiger Text — sonst ließe sich eine bereits stehende Meldung beim
+    /// Sprachwechsel nicht mehr übersetzen.
+    /// </summary>
+    private (string Key, object?[] Args)? _exportStatus;
+
+    public string ExportStatusText =>
+        _exportStatus is { } status ? L.F(status.Key, status.Args) : string.Empty;
+
+    public bool HasExportStatus => _exportStatus is not null;
+
+    /// <summary>Der Pfad, nicht nur „fertig" — sonst sucht der Nutzer die Datei.</summary>
+    public void ReportExportSucceeded(string path) => SetExportStatus("Report_Saved", path);
+
+    public void ReportExportFailed(string reason) => SetExportStatus("Report_SaveFailed", reason);
+
+    private void SetExportStatus(string key, params object?[] args)
+    {
+        _exportStatus = (key, args);
+        OnPropertyChanged(nameof(ExportStatusText));
+        OnPropertyChanged(nameof(HasExportStatus));
+    }
+
+    /// <summary>
     /// Abgeleitete Texte sind fertige Strings und folgen dem Sprachwechsel nicht von
     /// selbst — dieselbe Regel wie im Hauptfenster.
     /// </summary>
@@ -132,6 +166,7 @@ public sealed class ReportWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(Verdict));
         OnPropertyChanged(nameof(NoTradesText));
         OnPropertyChanged(nameof(PartialSessionHint));
+        OnPropertyChanged(nameof(ExportStatusText));
 
         // Zahlen folgen der OS-Kultur, aber das Vorzeichen-Format und "—" nicht:
         // sicherheitshalber alle Textfelder neu melden.

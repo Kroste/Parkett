@@ -18,7 +18,7 @@
 
 ## Aktueller Stand
 
-**v0.2.0 — spielbar. 168 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
+**v0.2.0 — spielbar. 182 Tests grün (plus 23 Skript-Tests), unter Xvfb end-to-end verifiziert
 (Sitzung starten, kaufen, Schritte, verkaufen, Sprachwechsel).**
 
 Am 2026-08-27 gegen den `kroste-avalonia`-Skill geprüft und nachgezogen: Self-Update
@@ -69,6 +69,10 @@ Fertig:
   durchgelaufen ist. Gebührenlast ganz oben, Equity-Kurve mit Startkapital-Linie und
   Drawdown-Marker, Kennzahlen, und ein Urteil in Worten. Vorschau ohne Sitzung über
   `Parkett.exe --report-preview <datei.png> [gewinn|verlust|gebuehren|leer]`.
+- **Bericht exportieren** (`Views/ReportImage`, `Services/ReportExport`): „Bericht
+  speichern" schreibt den **ganzen** Bericht als PNG in doppelter Auflösung — nicht
+  den sichtbaren Ausschnitt. Vorschau und Knopf laufen über denselben Renderpfad
+  (`ReportWindow.SaveReportImage`), damit die Vorschau zeigt, was der Export liefert.
 - **Datenbeschaffung** (`scripts/fetch_history.py`): holt EOD-Historie nach `Data/` —
   aus einer vorhandenen Datei (auch deutsche Broker-Exporte) oder über Alpha Vantage
   mit dem Schlüssel des Nutzers. Erzwingt die Handelstag-Grenze im Code. Eigene
@@ -90,27 +94,24 @@ Kurzfristig:
    `Portfolio` kann das bereits, `SimulationClock` läuft noch auf einem Symbol.
    **Hängt daran:** die Equity-Kurve über mehrere Werte, und ob der Bericht dann
    pro Instrument oder für das Gesamtdepot aufschlüsselt.
-2. **Bericht exportieren.** Der Bericht rendert sich bereits selbst in eine PNG
-   (`--report-preview`); dieselbe Mechanik als „Bericht speichern"-Knopf im Fenster
-   wäre wenig Aufwand und macht Sitzungen vergleichbar.
 
 Mittelfristig:
 
-3. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
+2. **Alpaca-Provider (Bring your own key).** Nutzer hinterlegt seinen eigenen kostenlosen
    Zugang; damit verbreitet Parkett keine Daten weiter und braucht keine eigene Lizenz.
    Das ist der Weg zu „live" ohne fünfstellige Monatskosten.
-4. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
+3. **Deutsche-Börse-Provider.** Verzögerte Xetra-Daten sind kostenfrei, brauchen aber eine
    Data Usage Declaration. Erst freischalten, wenn `AgreementReference` gesetzt ist —
    `MarketDataLicense.IsUsableInPaidBuild` erzwingt das bereits.
-5. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
-6. **Meilensteine** (erste Sitzung beendet, ohne Totalverlust überstanden, 20 Rundläufe).
+4. **Strategie-Auswertung (Pro).** Bericht über mehrere Sitzungen, Export als CSV.
+5. **Meilensteine** (erste Sitzung beendet, ohne Totalverlust überstanden, 20 Rundläufe).
    Der Abschlussbericht ist der natürliche Ort, sie auszulösen. Sie waren ursprünglich
    nur als Steam-Vorbereitung gedacht, haben aber auch im Direktverkauf Wert — deshalb
    bleiben sie auf der Liste, nur ohne Eile.
 
 Später — Steam:
 
-7. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
+6. **Steam-Integration.** Steamworks.NET oder Facepunch.Steamworks für Achievements und
    Entitlement. Demo als eigene App-ID. Drei Dinge sind vorher zu klären:
    - **Overlay-Risiko zuerst prüfen.** Avalonia rendert über Skia, das Steam-Overlay
      hängt an DirectX/OpenGL-Hooks. Funktioniert das nicht, ändert es die Machbarkeit
@@ -152,7 +153,7 @@ Repository ist eine Weiterverbreitung. Nur das erfundene `DEMO.csv` ist eingeche
 
 **Für den Direktverkauf ist die Frage damit erledigt** — dort liegt nur `DEMO.csv` bei,
 den Rest holt sich der Nutzer. Offen bleibt sie nur für eine auszuliefernde Fassung;
-das ist mit Steam zurückgestellt und steht als Teilfrage bei Roadmap-Punkt 7.
+das ist mit Steam zurückgestellt und steht als Teilfrage bei Roadmap-Punkt 6.
 
 ### Warum Gebühren ein eigenes Konzept sind
 
@@ -239,6 +240,24 @@ die Lizenz.
   Über-Fenster prüfte nur und zeigte „Version X verfügbar". Wer den Update-Pfad
   anfasst, prüft mit `grep -rn DownloadAndApplyAsync`, dass es noch einen Aufrufer gibt.
 
+- **`dotnet test` ohne den `--`-Separator führt hier null Tests aus** und endet mit
+  Exitcode 5 („Es wurden keine Tests ausgeführt") — obwohl der Build grün ist und
+  kein Test fehlschlägt. Mit `dotnet test --` laufen dieselben 182 Tests durch. Das
+  ist dieselbe Wurzel wie bei der TRX-Falle darüber: alles hinter `--` geht an die
+  Microsoft.Testing.Platform, davor landet es im alten VSTest-Pfad, den xunit.v3 4.x
+  nicht mehr bedient. Die CI ruft deshalb bereits `dotnet test --no-build -c Release --`.
+  Wer lokal ohne Separator testet, hält ein funktionierendes Testprojekt für kaputt.
+
+- **Ein Control im ScrollViewer rendert um seinen Scroll-Offset verschoben.** Der
+  Bericht-Export setzt `Scroller.Offset` deshalb vor dem Rendern zurück und danach
+  wieder her (`ReportWindow.RenderSurface`); dazwischen liegt kein Frame, der Sprung
+  ist unsichtbar. Was der Export dagegen *bewusst* nutzt: im ScrollViewer arrangiert
+  Avalonia den Inhalt mit unbegrenzter Höhe. `Bounds.Size` ist damit der **ganze**
+  Bericht, nicht der sichtbare Teil — nachgemessen mit einem Fenster von 360 px Höhe,
+  das trotzdem die vollen 1550 px ausgibt. Wer stattdessen das Fenster rendert
+  (so lief `--report-preview` bis v0.3.0), bekommt Titelleiste, Fußleiste und einen
+  abgeschnittenen Bericht.
+
 ### Sprachwechsel: was live geht und was nicht
 
 `{loc:Tr Key}` im XAML aktualisiert sich von selbst — das erledigt der statisch gecachte
@@ -288,6 +307,7 @@ kein Fehlen des Fonts. Unter Linux mit Noto Color Emoji sieht es richtig aus. We
 | `Persistence/JsonStore` | Atomares Speichern, `.broken`-Rettung **nur bei kaputtem JSON**, stürzt nie an Nutzerdaten |
 | `Services/UpdateService` | Release-Check, Download, plattformeigenes Austausch-Skript |
 | `Charting/EquityViewport` | Skalierung der Equity-Kurve, ohne Avalonia-Bezug und testbar |
+| `Views/ReportImage` | Rendert den Bericht als PNG — einziger Renderpfad für Knopf und Vorschau |
 | `ViewModels/ReportWindowViewModel` | Kennzahlen → Anzeigetexte und das Urteil in Worten |
 
 ### Der Abschlussbericht sagt mehr als die Kennzahlen

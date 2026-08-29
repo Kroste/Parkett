@@ -67,7 +67,8 @@ chmod +x Parkett-*-x86_64.AppImage
 5. **End of session** — once the history has run out, a report opens: what the fees
    cost you, your portfolio value over time against your starting capital, the key
    figures, and a plain-language verdict. The status bar keeps the short version
-   after you close it.
+   after you close it. **"Save report"** writes the whole report to a PNG at twice
+   the screen resolution, so you can put two sessions side by side.
 
 The portfolio starts with €10,000 of play money. Short selling is deliberately blocked.
 

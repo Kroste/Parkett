@@ -1,7 +1,4 @@
 using System.Globalization;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using NLog;
 using Parkett.Domain;
@@ -47,30 +44,18 @@ internal static class ReportPreview
         window.Show();
     }
 
-    private static void Capture(Window window, string target)
+    /// <summary>
+    /// Rendert über denselben Weg wie der Speichern-Knopf im Bericht. Eine eigene
+    /// Kopie hier hätte genau den Zweck der Vorschau verfehlt: sie soll zeigen, was
+    /// beim Export herauskommt, nicht etwas Ähnliches.
+    /// </summary>
+    private static void Capture(ReportWindow window, string target)
     {
         try
         {
-            var size = new Size(window.Bounds.Width, window.Bounds.Height);
+            var full = window.SaveReportImage(target);
 
-            if (size.Width < 1 || size.Height < 1)
-            {
-                Log.Error("Fenster hat keine Größe — nichts zu rendern.");
-                return;
-            }
-
-            using var bitmap = new RenderTargetBitmap(
-                new PixelSize((int)size.Width, (int)size.Height),
-                new Vector(96, 96));
-
-            bitmap.Render(window);
-
-            var full = Path.GetFullPath(target);
-            Directory.CreateDirectory(Path.GetDirectoryName(full)!);
-            // Avalonia 12: Save(string, int?) ist veraltet, die Optionen sind Pflicht.
-            bitmap.Save(full, new PngBitmapEncoderOptions());
-
-            Log.Info("Vorschau geschrieben: {Path} ({Width}x{Height})", full, (int)size.Width, (int)size.Height);
+            Log.Info("Vorschau geschrieben: {Path}", full);
             Console.WriteLine($"geschrieben: {full}");
         }
         catch (Exception ex)

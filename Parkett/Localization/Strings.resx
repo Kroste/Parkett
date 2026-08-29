@@ -35,6 +35,11 @@
   <data name="Report_VerdictFlat" xml:space="preserve"><value>You finished exactly where you started. With no closed round trips there is nothing to judge yet — but note that the fees would have applied either way.</value></data>
   <data name="Report_VerdictLoss" xml:space="preserve"><value>You ended below your starting capital. Compare the loss with the fee drag — a part of it was never a market decision.</value></data>
   <data name="Report_VerdictFeesAtePlus" xml:space="preserve"><value>Without fees this session would have been positive. The strategy worked; the trading frequency did not.</value></data>
+  <data name="Report_Save" xml:space="preserve"><value>Save report</value></data>
+  <data name="Report_SaveDialogTitle" xml:space="preserve"><value>Save report as image</value></data>
+  <data name="Report_SaveFileType" xml:space="preserve"><value>PNG image</value></data>
+  <data name="Report_Saved" xml:space="preserve"><value>Saved as {0}</value></data>
+  <data name="Report_SaveFailed" xml:space="preserve"><value>The report could not be saved: {0}</value></data>
 
   <!-- ============ Kopfbereich ============ -->
   <data name="Main_TradingDay" xml:space="preserve"><value>Trading day</value></data>

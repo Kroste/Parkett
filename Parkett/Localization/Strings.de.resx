@@ -35,6 +35,11 @@
   <data name="Report_VerdictFlat" xml:space="preserve"><value>Du landest genau da, wo du angefangen hast. Ohne abgeschlossene Rundläufe gibt es noch nichts zu bewerten — die Gebühren wären aber so oder so angefallen.</value></data>
   <data name="Report_VerdictLoss" xml:space="preserve"><value>Du liegst unter deinem Startkapital. Vergleich den Verlust mit der Gebührenlast — ein Teil davon war nie eine Marktentscheidung.</value></data>
   <data name="Report_VerdictFeesAtePlus" xml:space="preserve"><value>Ohne Gebühren wäre diese Sitzung im Plus gewesen. Die Strategie hat funktioniert, die Handelshäufigkeit nicht.</value></data>
+  <data name="Report_Save" xml:space="preserve"><value>Bericht speichern</value></data>
+  <data name="Report_SaveDialogTitle" xml:space="preserve"><value>Bericht als Bild speichern</value></data>
+  <data name="Report_SaveFileType" xml:space="preserve"><value>PNG-Bild</value></data>
+  <data name="Report_Saved" xml:space="preserve"><value>Gespeichert als {0}</value></data>
+  <data name="Report_SaveFailed" xml:space="preserve"><value>Der Bericht konnte nicht gespeichert werden: {0}</value></data>
 
   <!-- ============ Kopfbereich ============ -->
   <data name="Main_TradingDay" xml:space="preserve"><value>Handelstag</value></data>

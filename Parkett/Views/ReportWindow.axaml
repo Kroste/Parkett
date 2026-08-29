@@ -16,109 +16,124 @@
         <Border DockPanel.Dock="Bottom" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource KrosteBorderBrush}"
                 Padding="22,12">
-            <Button Classes="accent" Content="{loc:Tr Common_Close}"
-                    HorizontalAlignment="Right" Click="OnClose" />
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding ExportStatusText}"
+                           Classes="muted" FontSize="11"
+                           VerticalAlignment="Center" TextWrapping="Wrap"
+                           Margin="0,0,12,0"
+                           IsVisible="{Binding HasExportStatus}" />
+
+                <Button Grid.Column="1" Content="{loc:Tr Report_Save}"
+                        Click="OnSave" Margin="0,0,8,0" />
+
+                <Button Grid.Column="2" Classes="accent" Content="{loc:Tr Common_Close}"
+                        Click="OnClose" />
+            </Grid>
         </Border>
 
-        <ScrollViewer>
-            <StackPanel Margin="22" Spacing="14">
+        <ScrollViewer x:Name="Scroller">
+            <!-- Diese Fläche wird exportiert: ohne Titelleiste, ohne Fußleiste,
+                 und mit eigenem Hintergrund — sonst wäre die PNG transparent. -->
+            <Border x:Name="ReportSurface" Background="{DynamicResource KrosteBackgroundBrush}">
+                <StackPanel Margin="22" Spacing="14">
 
-                <StackPanel Spacing="4">
-                    <TextBlock Text="{loc:Tr Report_Headline}" Classes="h1" />
-                    <TextBlock Text="{Binding SubHeadline}" Classes="secondary" FontSize="12" />
-                    <TextBlock Text="{Binding PartialSessionHint}" Classes="muted"
-                               FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
-                               IsVisible="{Binding IsPartialSession}" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Tr Report_Headline}" Classes="h1" />
+                        <TextBlock Text="{Binding SubHeadline}" Classes="secondary" FontSize="12" />
+                        <TextBlock Text="{Binding PartialSessionHint}" Classes="muted"
+                                   FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   IsVisible="{Binding IsPartialSession}" />
+                    </StackPanel>
+
+                    <!-- Die Gebührenlast steht bewusst VOR dem Ergebnis: sie ist der Teil,
+                         den der Nutzer selbst steuert. -->
+                    <Border Classes="card">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{loc:Tr Report_FeeSection}" Classes="section-label" />
+
+                            <Grid ColumnDefinitions="*,*,*">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_FeeDrag}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding FeeDragText}" Classes="h2" FontSize="24" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_FeesPaid}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding FeesPaidText}" Classes="secondary" FontSize="16" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_ResultWithoutFees}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding ReturnWithoutFeesText}" Classes="secondary" FontSize="16" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="{loc:Tr Report_FeeDragHint}" Classes="muted"
+                                       FontSize="11" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{loc:Tr Report_CurveSection}" Classes="section-label" />
+
+                            <controls:EquityChart x:Name="Curve" Height="200"
+                                                  Curve="{Binding EquityCurve}"
+                                                  StartEquity="{Binding StartEquity}"
+                                                  GainBrush="{DynamicResource KrosteSuccessBrush}"
+                                                  LossBrush="{DynamicResource KrosteDangerBrush}"
+                                                  BaselineBrush="{DynamicResource KrosteGoldBrush}"
+                                                  GridBrush="{DynamicResource KrosteBorderBrush}"
+                                                  LabelBrush="{DynamicResource KrosteMutedTextBrush}" />
+
+                            <TextBlock Text="{loc:Tr Report_CurveHint}" Classes="muted"
+                                       FontSize="11" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{loc:Tr Report_MetricsSection}" Classes="section-label" />
+
+                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,12,Auto">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_StartEquity}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding StartEquityText}" Classes="secondary" FontSize="15" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_EndEquity}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding EndEquityText}" Classes="secondary" FontSize="15" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_TotalReturn}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding TotalReturnText}" Classes="h2" FontSize="18" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_MaxDrawdown}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding MaxDrawdownText}" Classes="secondary" FontSize="15" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_TradeCount}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding TradeCountText}" Classes="secondary" FontSize="15" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="2">
+                                    <TextBlock Text="{loc:Tr Report_WinRate}" Classes="muted" FontSize="11" />
+                                    <TextBlock Text="{Binding WinRateText}" Classes="secondary" FontSize="15" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="{loc:Tr Report_NoTrades}" Classes="muted"
+                                       FontSize="11" TextWrapping="Wrap"
+                                       IsVisible="{Binding !HasTrades}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card">
+                        <TextBlock Text="{Binding Verdict}" Classes="secondary"
+                                   FontSize="13" TextWrapping="Wrap" />
+                    </Border>
+
                 </StackPanel>
-
-                <!-- Die Gebührenlast steht bewusst VOR dem Ergebnis: sie ist der Teil,
-                     den der Nutzer selbst steuert. -->
-                <Border Classes="card">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="{loc:Tr Report_FeeSection}" Classes="section-label" />
-
-                        <Grid ColumnDefinitions="*,*,*">
-                            <StackPanel Grid.Column="0" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_FeeDrag}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding FeeDragText}" Classes="h2" FontSize="24" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_FeesPaid}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding FeesPaidText}" Classes="secondary" FontSize="16" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_ResultWithoutFees}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding ReturnWithoutFeesText}" Classes="secondary" FontSize="16" />
-                            </StackPanel>
-                        </Grid>
-
-                        <TextBlock Text="{loc:Tr Report_FeeDragHint}" Classes="muted"
-                                   FontSize="11" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <Border Classes="card">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="{loc:Tr Report_CurveSection}" Classes="section-label" />
-
-                        <controls:EquityChart x:Name="Curve" Height="200"
-                                              Curve="{Binding EquityCurve}"
-                                              StartEquity="{Binding StartEquity}"
-                                              GainBrush="{DynamicResource KrosteSuccessBrush}"
-                                              LossBrush="{DynamicResource KrosteDangerBrush}"
-                                              BaselineBrush="{DynamicResource KrosteGoldBrush}"
-                                              GridBrush="{DynamicResource KrosteBorderBrush}"
-                                              LabelBrush="{DynamicResource KrosteMutedTextBrush}" />
-
-                        <TextBlock Text="{loc:Tr Report_CurveHint}" Classes="muted"
-                                   FontSize="11" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <Border Classes="card">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="{loc:Tr Report_MetricsSection}" Classes="section-label" />
-
-                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,12,Auto">
-                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_StartEquity}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding StartEquityText}" Classes="secondary" FontSize="15" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_EndEquity}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding EndEquityText}" Classes="secondary" FontSize="15" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="0" Grid.Column="2" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_TotalReturn}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding TotalReturnText}" Classes="h2" FontSize="18" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Grid.Column="0" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_MaxDrawdown}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding MaxDrawdownText}" Classes="secondary" FontSize="15" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="2" Grid.Column="1" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_TradeCount}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding TradeCountText}" Classes="secondary" FontSize="15" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="2" Grid.Column="2" Spacing="2">
-                                <TextBlock Text="{loc:Tr Report_WinRate}" Classes="muted" FontSize="11" />
-                                <TextBlock Text="{Binding WinRateText}" Classes="secondary" FontSize="15" />
-                            </StackPanel>
-                        </Grid>
-
-                        <TextBlock Text="{loc:Tr Report_NoTrades}" Classes="muted"
-                                   FontSize="11" TextWrapping="Wrap"
-                                   IsVisible="{Binding !HasTrades}" />
-                    </StackPanel>
-                </Border>
-
-                <Border Classes="card">
-                    <TextBlock Text="{Binding Verdict}" Classes="secondary"
-                               FontSize="13" TextWrapping="Wrap" />
-                </Border>
-
-            </StackPanel>
+            </Border>
         </ScrollViewer>
     </DockPanel>
 </views:ChromeWindow>
