@@ -29,12 +29,13 @@ Umlaute, `.editorconfig`, CI-Annotationen, VM-Aufteilung. Details in der Referen
 linux-x64-Tarball und AppImage. Der Release-Workflow ist damit erstmals scharf
 gelaufen und zweimal repariert worden (siehe Stolperfallen).
 
-⚠️ **Der Update-Check funktioniert noch nicht, und das liegt nicht am Code:
-`Kroste/Parkett` ist ein privates Repository.** Die GitHub-API antwortet auf
-anonyme Anfragen an private Repos mit **404** statt 403 — sie verrät die Existenz
-nicht. Für den Direktverkauf muss das Repo (oder wenigstens ein Release-Kanal)
-öffentlich sein, sonst kann keine ausgelieferte Fassung Updates finden und
-niemand die Pakete herunterladen. Das ist eine Produktentscheidung, kein Bug.
+**Der Update-Check läuft** (Stand 2026-08-29). Er schwieg eine Zeit lang, weil
+`Kroste/Parkett` privat war: Die GitHub-API antwortet auf anonyme Anfragen an
+private Repos mit **404** statt 403 — sie verrät die Existenz nicht. Das Repo ist
+inzwischen öffentlich, anonyme Abfragen von `releases/latest` liefern 200, und die
+laufende App findet v0.3.0. Wer die Sichtbarkeit je zurückdreht, nimmt jeder
+ausgelieferten Fassung den Update-Pfad — und der Fehler sieht dann nach einem Bug
+im Client aus, obwohl keiner da ist.
 
 Fertig:
 
