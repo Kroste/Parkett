@@ -17,7 +17,7 @@
          Der Verweis steht bewusst explizit in Parkett.csproj — ohne ihn wäre
          der Eintrag hier wirkungslos, weil CPM transitive Pakete nur mit
          CentralPackageTransitivePinningEnabled pinnt. -->
-    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.94.1" />
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.95.0" />
 
     <!-- MVVM & DI -->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
